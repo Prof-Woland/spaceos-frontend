@@ -230,38 +230,38 @@ export default function AdminPanel() {
        </div>
       )}
 
-      {activeTab === 'scanner' && (
+       {activeTab === 'scanner' && (
         <div className="max-w-xl mx-auto">
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 text-center">
+          <div className="bg-white p-4 md:p-8 rounded-3xl shadow-sm border border-slate-200 text-center">
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Сканирование билетов</h2>
             <p className="text-sm text-slate-500 mb-8">
               Наведите камеру на QR-код с телефона клиента, чтобы подтвердить его вход.
             </p>
             
-            {/* Контейнер для камеры */}
             <div className="relative w-full aspect-square max-w-sm mx-auto overflow-hidden rounded-2xl border-4 border-slate-800 shadow-xl bg-black mb-8">
               <Scanner 
+                // 👇 ВОТ ГЛАВНЫЙ ФИКС: ставим сканер на паузу, если открыта модалка
+                paused={!!scannedBooking || checkInMutation.isPending}
                 onScan={(result) => {
                   if (result && result[0]?.rawValue) {
-                    // Защита от повторного сканирования, пока идет запрос
-                    if (checkInMutation.isPending) return;
+                    if (checkInMutation.isPending || scannedBooking) return;
                     checkInMutation.mutate(result[0].rawValue);
                   }
                 }} 
-                components={{
-                  finder: true, // Показывать рамку прицела
-                }}
+                components={{ finder: true }}
               />
             </div>
 
             <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
               <CheckCircle size={16} className="text-emerald-500" />
-              Камера автоматически распознает код и подтвердит клиента
+              Камера автоматически распознает код и заселит клиента
             </div>
           </div>
+          
+          {/* МОДАЛКА УСПЕШНОГО СКАНИРОВАНИЯ */}
           {scannedBooking && (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
+              <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
                 <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle size={40} />
                 </div>
@@ -272,24 +272,28 @@ export default function AdminPanel() {
                 <div className="bg-slate-50 rounded-2xl p-5 space-y-4 mb-8 border border-slate-100">
                   <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                     <span className="text-slate-500 text-sm">Клиент</span>
-                    <span className="font-bold text-slate-900">{scannedBooking.user.fullName}</span>
+                    <span className="font-bold text-slate-900">{scannedBooking.user?.fullName || 'Неизвестно'}</span>
                   </div>
                   <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                     <span className="text-slate-500 text-sm">Помещение</span>
-                    <span className="font-bold text-slate-900">{scannedBooking.resource.name}</span>
+                    <span className="font-bold text-slate-900">{scannedBooking.resource?.name || 'Неизвестно'}</span>
                   </div>
                   <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                     <span className="text-slate-500 text-sm">Вместимость</span>
                     <span className="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
-                      {scannedBooking.resource.capacity ? `${scannedBooking.resource.capacity} чел.` : '1 чел.'}
+                      {scannedBooking.resource?.capacity ? `${scannedBooking.resource.capacity} чел.` : '1 чел.'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-500 text-sm">Время</span>
-                    <span className="font-bold text-slate-900">
-                      {format(new Date(scannedBooking.startDatetime), 'HH:mm')} — {format(new Date(scannedBooking.endDatetime), 'HH:mm')}
-                    </span>
-                  </div>
+                  
+                  {/* 👇 Защита от ошибки рендера даты */}
+                  {scannedBooking.startDatetime && scannedBooking.endDatetime && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 text-sm">Время</span>
+                      <span className="font-bold text-slate-900">
+                        {format(new Date(scannedBooking.startDatetime), 'HH:mm')} — {format(new Date(scannedBooking.endDatetime), 'HH:mm')}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <button 
