@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: 'http://localhost:3000/api', // Адрес нашего бэкенда
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api', // Адрес нашего бэкенда
 });
 
 // Интерсептор: добавляем токен в заголовки перед каждым запросом
