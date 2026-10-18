@@ -148,7 +148,7 @@ export default function AdminPanel() {
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie data={stats?.statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
-                          {stats?.statusData.map((entry: any, index: number) => (
+                          {stats?.statusData.map((index: number) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>

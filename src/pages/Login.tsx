@@ -19,7 +19,7 @@ export default function Login() {
     const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+    setIsLoading(true);
     try {
       if (isLogin) {
         const { data } = await api.post('/auth/login', { email, password });
@@ -36,6 +36,8 @@ export default function Login() {
       const msg = err.response?.data?.message || 'Произошла ошибка';
       setError(msg);
       toast.error(msg); // Показываем и в форме, и в тосте
+    } finally{
+        setIsLoading(false);
     }
   };
 

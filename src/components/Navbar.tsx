@@ -1,13 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation} from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, LogOut, Menu, Ticket, User, X, ShieldAlert } from 'lucide-react';
-import { RoleName } from '../common/constants'; // Если у тебя нет этого файла на фронте, замени проверку ролей на user.roles.includes('Администратор')
+import { LogOut, Menu, Ticket, X, ShieldAlert } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
