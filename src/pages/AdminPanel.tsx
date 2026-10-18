@@ -58,11 +58,16 @@ export default function AdminPanel() {
     }
   });
 
-      const checkInMutation = useMutation({
+    const checkInMutation = useMutation({
     mutationFn: (code: string) => api.patch(`/bookings/check-in/${code}`),
     onSuccess: (data: any) => {
-      // 👇 Если пришел объект с полем booking, берем его. Иначе берем data.
-      const bookingData = data.booking ? data.booking : data;
+      console.log('Ответ от бэкенда:', data); // 👈 Посмотри это в консоли!
+      
+      // Умный парсинг: ищем объект брони, где бы он ни лежал
+      let bookingData = data;
+      if (data.booking) bookingData = data.booking; // Если бэкенд вернул { message, booking }
+      if (data.data) bookingData = data.data; // Если бэкенд вернул { data: { ... } }
+      
       setScannedBooking(bookingData);
       
       queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
@@ -257,7 +262,7 @@ export default function AdminPanel() {
 
             <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
               <CheckCircle size={16} className="text-emerald-500" />
-              Камера автоматически распознает код и заселит клиента
+              Камера автоматически распознает код и подтвердит клиента
             </div>
           </div>
           
