@@ -177,7 +177,7 @@ export default function FloorMap({ resources, onSelect }: FloorMapProps) {
               <span className="bg-slate-800 text-white px-3 py-1 rounded text-[10px] font-bold tracking-widest uppercase">Зона А</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-grow content-start">
-              {podsA.map((pod, index) => (
+              {podsA.map((pod:any, index:any) => (
                 <div key={index} className="relative border-2 border-dashed border-slate-300 rounded-xl p-3 flex items-center justify-center bg-slate-50/50 min-h-[150px]">
                   <div className="grid grid-cols-2 gap-2 w-full h-full max-w-[180px]">
                     {pod.map((res: any) => <ResourceCard key={res.id} res={res} onSelect={onSelect} />)}
@@ -194,7 +194,7 @@ export default function FloorMap({ resources, onSelect }: FloorMapProps) {
               <span className="bg-slate-800 text-white px-3 py-1 rounded text-[10px] font-bold tracking-widest uppercase">Зона B / C</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-grow content-start">
-              {podsBC.map((pod, index) => (
+              {podsBC.map((pod:any, index:any) => (
                 <div key={index} className="relative border-2 border-dashed border-slate-300 rounded-xl p-3 flex items-center justify-center bg-white min-h-[150px]">
                   <div className="grid grid-cols-2 gap-2 w-full h-full max-w-[180px]">
                     {pod.map((res: any) => <ResourceCard key={res.id} res={res} onSelect={onSelect} />)}
