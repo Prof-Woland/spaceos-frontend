@@ -58,10 +58,13 @@ export default function AdminPanel() {
     }
   });
 
-    const checkInMutation = useMutation({
+      const checkInMutation = useMutation({
     mutationFn: (code: string) => api.patch(`/bookings/check-in/${code}`),
-    onSuccess: (data) => {
-      setScannedBooking(data);
+    onSuccess: (data: any) => {
+      // 👇 Если пришел объект с полем booking, берем его. Иначе берем data.
+      const bookingData = data.booking ? data.booking : data;
+      setScannedBooking(bookingData);
+      
       queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
       queryClient.invalidateQueries({ queryKey: ['resources'] });
     },
@@ -269,14 +272,14 @@ export default function AdminPanel() {
                 <h3 className="text-2xl font-bold text-center text-slate-900 mb-2">Вход разрешен!</h3>
                 <p className="text-center text-slate-500 mb-6">Бронь успешно подтверждена</p>
                 
-                <div className="bg-slate-50 rounded-2xl p-5 space-y-4 mb-8 border border-slate-100">
+                               <div className="bg-slate-50 rounded-2xl p-5 space-y-4 mb-8 border border-slate-100">
                   <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                     <span className="text-slate-500 text-sm">Клиент</span>
-                    <span className="font-bold text-slate-900">{scannedBooking.user?.fullName || 'Неизвестно'}</span>
+                    <span className="font-bold text-slate-900">{scannedBooking.user?.fullName || 'Не указан'}</span>
                   </div>
                   <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                     <span className="text-slate-500 text-sm">Помещение</span>
-                    <span className="font-bold text-slate-900">{scannedBooking.resource?.name || 'Неизвестно'}</span>
+                    <span className="font-bold text-slate-900">{scannedBooking.resource?.name || 'Не указано'}</span>
                   </div>
                   <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                     <span className="text-slate-500 text-sm">Вместимость</span>
@@ -285,15 +288,15 @@ export default function AdminPanel() {
                     </span>
                   </div>
                   
-                  {/* 👇 Защита от ошибки рендера даты */}
-                  {scannedBooking.startDatetime && scannedBooking.endDatetime && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-500 text-sm">Время</span>
-                      <span className="font-bold text-slate-900">
-                        {format(new Date(scannedBooking.startDatetime), 'HH:mm')} — {format(new Date(scannedBooking.endDatetime), 'HH:mm')}
-                      </span>
-                    </div>
-                  )}
+                  {/* 👇 Железобетонная защита от краша Safari */}
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500 text-sm">Время</span>
+                    <span className="font-bold text-slate-900">
+                      {scannedBooking.startDatetime && scannedBooking.endDatetime 
+                        ? `${format(new Date(scannedBooking.startDatetime), 'HH:mm')} — ${format(new Date(scannedBooking.endDatetime), 'HH:mm')}`
+                        : 'Время не указано'}
+                    </span>
+                  </div>
                 </div>
 
                 <button 
