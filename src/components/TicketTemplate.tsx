@@ -1,7 +1,7 @@
 import { QRCode } from 'react-qr-code';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Monitor, MapPin, CheckCircle2, Coffee } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { forwardRef } from 'react';
 
 interface TicketProps {
