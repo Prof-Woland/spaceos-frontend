@@ -5,7 +5,8 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { 
   Plus, Trash2, ShieldAlert, Monitor, Users, TrendingUp, 
-  DollarSign, CalendarCheck, QrCode, CheckCircle, Search, Wrench, Check, Clock, Crown, FileSpreadsheet 
+  DollarSign, CalendarCheck, QrCode, CheckCircle, Search, Wrench, Check, 
+  Clock, Crown, FileSpreadsheet 
 } from 'lucide-react';
 import { 
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, 
@@ -198,7 +199,6 @@ export default function AdminPanel() {
             <div className="flex flex-col items-center justify-center py-32"><Spinner size="lg" /></div>
           ) : (
             <>
-              {/* KPI Карточки */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-6">
                   <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><DollarSign size={32} /></div>
@@ -223,7 +223,6 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              {/* График выручки по дням */}
               <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2"><TrendingUp size={20} className="text-slate-400" /> Выручка за 7 дней</h3>
                 <div className="h-[300px] w-full">
@@ -239,7 +238,6 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              {/* Сетка графиков */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
                   <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2 uppercase tracking-wider"><Clock size={16} className="text-slate-400" /> Пиковые часы</h3>
@@ -285,7 +283,6 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              {/* Выручка по ресурсам */}
               <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 mt-6">
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2"><DollarSign size={20} className="text-slate-400" /> Выручка по ресурсам (Топ-5)</h3>
                 <div className="h-[300px] w-full">
@@ -301,7 +298,6 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              {/* Топ-3 клиента */}
               <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
                 <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2 uppercase tracking-wider"><Crown size={16} className="text-amber-500" /> Самые активные клиенты</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -343,10 +339,7 @@ export default function AdminPanel() {
               />
             </div>
             
-            <button 
-              onClick={downloadCSV}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors"
-            >
+            <button onClick={downloadCSV} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
               <FileSpreadsheet size={16} /> Выгрузить в Excel
             </button>
           </div>
@@ -394,7 +387,7 @@ export default function AdminPanel() {
               </table>
             </div>
 
-            {/* Мобильные карточки */}
+            {/* Мобильные карточки (Брони) */}
             <div className="md:hidden flex flex-col divide-y divide-slate-100 dark:divide-slate-700">
               {filteredBookings.map((b: any) => (
                 <div key={b.id} className="p-4 flex flex-col gap-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
@@ -480,7 +473,7 @@ export default function AdminPanel() {
                <div className="flex flex-col items-center justify-center py-32"><Spinner size="lg" /></div>
             ) : (
               <>
-                {/* Десктопная таблица ресурсов */}
+                {/* Десктопная таблица (Ресурсы) */}
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left text-sm whitespace-nowrap">
                     <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
@@ -525,7 +518,7 @@ export default function AdminPanel() {
                   </table>
                 </div>
 
-                {/* Мобильные карточки ресурсов */}
+                {/* Мобильные карточки (Ресурсы) */}
                 <div className="md:hidden flex flex-col divide-y divide-slate-100 dark:divide-slate-700">
                   {filteredResources.map((r: any) => (
                     <div key={r.id} className="p-4 flex flex-col gap-3">
@@ -573,45 +566,81 @@ export default function AdminPanel() {
           {isLoadingUsers ? (
              <div className="flex flex-col items-center justify-center py-32"><Spinner size="lg" /></div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm whitespace-nowrap">
-                <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
-                  <tr>
-                    <th className="p-4 font-semibold">ФИО</th>
-                    <th className="p-4 font-semibold">Email</th>
-                    <th className="p-4 font-semibold">Роль</th>
-                    <th className="p-4 font-semibold text-right">Действия</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                  {users?.map((u: any) => {
-                    const currentRole = u.userRoles[0]?.role?.name || 'Резидент';
-                    return (
-                      <tr key={u.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50">
-                        <td className="p-4 font-bold text-slate-800 dark:text-white">{u.fullName}</td>
-                        <td className="p-4 text-slate-600 dark:text-slate-400">{u.email}</td>
-                        <td className="p-4">
-                          <select 
-                            value={currentRole}
-                            onChange={(e) => updateRoleMutation.mutate({ id: u.id, roleName: e.target.value })}
-                            className="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 outline-none cursor-pointer"
-                          >
-                            <option value="Резидент">Резидент</option>
-                            <option value="Менеджер">Менеджер</option>
-                            <option value="Администратор">Администратор</option>
-                          </select>
-                        </td>
-                        <td className="p-4 text-right">
-                          <button onClick={() => { if(window.confirm('Удалить пользователя?')) deleteUserMutation.mutate(u.id) }} className="text-red-400 hover:text-red-600 p-2 transition-colors">
-                            <Trash2 size={18} />
-                          </button>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <>
+              {/* Десктопная таблица (Пользователи) */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-sm whitespace-nowrap">
+                  <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                    <tr>
+                      <th className="p-4 font-semibold">ФИО</th>
+                      <th className="p-4 font-semibold">Email</th>
+                      <th className="p-4 font-semibold">Роль</th>
+                      <th className="p-4 font-semibold text-right">Действия</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                    {users?.map((u: any) => {
+                      const currentRole = u.userRoles[0]?.role?.name || 'Резидент';
+                      return (
+                        <tr key={u.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50">
+                          <td className="p-4 font-bold text-slate-800 dark:text-white">{u.fullName}</td>
+                          <td className="p-4 text-slate-600 dark:text-slate-400">{u.email}</td>
+                          <td className="p-4">
+                            <select 
+                              value={currentRole}
+                              onChange={(e) => updateRoleMutation.mutate({ id: u.id, roleName: e.target.value })}
+                              className="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 outline-none cursor-pointer"
+                            >
+                              <option value="Резидент">Резидент</option>
+                              <option value="Менеджер">Менеджер</option>
+                              <option value="Администратор">Администратор</option>
+                            </select>
+                          </td>
+                          <td className="p-4 text-right">
+                            <button onClick={() => { if(window.confirm('Удалить пользователя?')) deleteUserMutation.mutate(u.id) }} className="text-red-400 hover:text-red-600 p-2 transition-colors">
+                              <Trash2 size={18} />
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Мобильные карточки (Пользователи) */}
+              <div className="md:hidden flex flex-col divide-y divide-slate-100 dark:divide-slate-700">
+                {users?.map((u: any) => {
+                  const currentRole = u.userRoles[0]?.role?.name || 'Резидент';
+                  return (
+                    <div key={u.id} className="p-4 flex flex-col gap-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-bold text-slate-800 dark:text-white">{u.fullName}</div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{u.email}</div>
+                        </div>
+                        <button onClick={() => { if(window.confirm('Удалить пользователя?')) deleteUserMutation.mutate(u.id) }} className="text-red-400 hover:text-red-600 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg transition-colors">
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                      
+                      <div className="mt-1">
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Роль пользователя</label>
+                        <select 
+                          value={currentRole}
+                          onChange={(e) => updateRoleMutation.mutate({ id: u.id, roleName: e.target.value })}
+                          className="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 outline-none cursor-pointer"
+                        >
+                          <option value="Резидент">Резидент</option>
+                          <option value="Менеджер">Менеджер</option>
+                          <option value="Администратор">Администратор</option>
+                        </select>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -671,7 +700,6 @@ export default function AdminPanel() {
                   </div>
                 </div>
 
-                {/* Статус оплаты */}
                 {scannedBooking.payment?.status === 'оплачено' ? (
                   <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 p-4 rounded-xl flex items-center justify-center gap-2 mb-6 font-bold">
                     <CheckCircle size={20} /> Бронь оплачена
