@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/axios';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { User, Lock, CreditCard, Shield } from 'lucide-react';
 import Spinner from '../components/Spinner';
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
+//   const queryClient = useQueryClient();
   
   // Форма личных данных
   const [fullName, setFullName] = useState(user?.fullName || '');
-  const [phone, setPhone] = useState(''); // Если у тебя нет телефона в контексте, можно запросить его с бэка
+  const [phone, setPhone] = useState(''); 
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
   // Форма смены пароля
@@ -18,13 +20,43 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState('');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
+  // 👇 Получаем список всех тарифов
+  const { data: tariffs } = useQuery({
+    queryKey: ['tariffs'],
+    queryFn: () => api.get('/tariffs').then(res => res.data),
+  });
+
+  // 👇 Мутация смены тарифа
+  const updateTariffMutation = useMutation({
+    mutationFn: (tariffId: number) => api.patch('/users/profile/tariff', { tariffId }),
+    onSuccess: (response) => {
+      // Axios возвращает ответ в поле data, поэтому достаем данные оттуда
+      const updatedUser = response.data;
+      
+      toast.success(`Тариф успешно изменен на ${updatedUser.tariff.name}`);
+      
+      // Обновляем контекст, чтобы везде (в шапке и т.д.) обновился тариф
+      updateUser({ 
+        ...user!, 
+        tariffId: updatedUser.tariff.id, 
+        tariffName: updatedUser.tariff.name 
+      });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Ошибка при смене тарифа');
+    }
+  });
+
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUpdatingProfile(true);
     try {
       const { data } = await api.patch('/users/profile', { fullName, phone });
-      // Обновляем контекст (чтобы в шапке поменялось имя)
-      updateUser({ ...user!, fullName: data.fullName, roles: data.userRoles.map((ur: any) => ur.role.name) });
+      updateUser({ 
+        ...user!, 
+        fullName: data.fullName, 
+        roles: data.userRoles.map((ur: any) => ur.role.name) 
+      });
       toast.success('Профиль успешно обновлен');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Ошибка при обновлении');
@@ -54,7 +86,7 @@ export default function Profile() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         
-        {/* Левая колонка: Инфо */}
+        {/* Левая колонка: Инфо и Тариф */}
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
             <div className="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl font-black">
@@ -67,12 +99,33 @@ export default function Profile() {
             </div>
           </div>
 
+          {/* 👇 Блок выбора тарифа */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <CreditCard size={16} /> Тариф
+              <CreditCard size={16} /> Ваш тариф
             </h3>
-            <p className="text-lg font-bold text-slate-800">Почасовой</p>
-            <p className="text-sm text-slate-500">Оплата по факту использования</p>
+            
+            <div className="mb-4">
+              <p className="text-lg font-bold text-slate-800">
+                {tariffs?.find((t: any) => t.id === user?.tariffId)?.name || user?.tariffName || 'Загрузка...'}
+              </p>
+            </div>
+
+            <label className="block text-xs font-bold text-slate-500 mb-2">Сменить тариф</label>
+            <select 
+              value={user?.tariffId || ''}
+              onChange={(e) => updateTariffMutation.mutate(Number(e.target.value))}
+              disabled={updateTariffMutation.isPending}
+              className="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 bg-slate-50 cursor-pointer disabled:opacity-50"
+            >
+              <option value="" disabled>Выберите тариф</option>
+              {tariffs?.map((tariff: any) => (
+                <option key={tariff.id} value={tariff.id}>
+                  {tariff.name} ({tariff.pricePerMonth} BYN/мес)
+                </option>
+              ))}
+            </select>
+            {updateTariffMutation.isPending && <p className="text-xs text-blue-500 mt-2">Сохранение...</p>}
           </div>
         </div>
 

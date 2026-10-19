@@ -5,6 +5,8 @@ interface User {
   fullName: string;
   email: string;
   roles: string[];
+  tariffId?: number;
+  tariffName?: string;
 }
 
 interface AuthContextType {
