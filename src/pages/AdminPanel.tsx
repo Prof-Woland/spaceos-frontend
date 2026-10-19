@@ -5,11 +5,12 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { 
   Plus, Trash2, ShieldAlert, Monitor, Users, TrendingUp, 
-  DollarSign, CalendarCheck, QrCode, CheckCircle, Search, Wrench, Check
+  DollarSign, CalendarCheck, QrCode, CheckCircle, Search, Wrench, Check, Crown,
+  Clock
 } from 'lucide-react';
 import { 
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line
 } from 'recharts';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import toast from 'react-hot-toast';
@@ -165,6 +166,7 @@ export default function AdminPanel() {
             </div>
           ) : (
             <>
+              {/* KPI Карточки */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-6">
                   <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
@@ -188,55 +190,115 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 👇 График выручки по дням */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                  <TrendingUp size={20} className="text-slate-400" /> Выручка за последние 7 дней
+                </h3>
+                <div className="h-[300px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={stats?.revenueByDay} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                      <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
+                      <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
+                      <RechartsTooltip 
+                        formatter={(value: any) => [`${Number(value).toFixed(2)} BYN`, 'Выручка']}
+                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      />
+                      <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981' }} activeDot={{ r: 6 }} isAnimationActive={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Сетка из 3-х графиков */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* Пиковые часы */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                  <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <TrendingUp size={20} className="text-slate-400" /> Статусы броней
+                  <h3 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-wider">
+                    <Clock size={16} className="text-slate-400" /> Пиковые часы
                   </h3>
-                  <div className="h-[300px] w-full">
-                    {stats?.statusData && stats.statusData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie data={stats.statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value" isAnimationActive={false}>
-                            {stats.statusData.map((_: any, index: number) => (
-                              <Cell key={`cell-${index}`} style={{ fill: COLORS[index % COLORS.length] }} />
-                            ))}
-                          </Pie>
-                          <RechartsTooltip />
-                          <Legend verticalAlign="bottom" height={36}/>
-                        </PieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium">Нет данных</div>
-                    )}
+                  <div className="h-[250px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={stats?.peakHours} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis dataKey="time" tick={{fontSize: 10, fill: '#64748b'}} axisLine={false} tickLine={false} interval={2} />
+                        <YAxis tick={{fontSize: 10, fill: '#64748b'}} axisLine={false} tickLine={false} allowDecimals={false} />
+                        <RechartsTooltip cursor={{fill: '#f1f5f9'}} />
+                        <Bar dataKey="count" name="Броней" fill="#f59e0b" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
 
+                {/* Статусы броней */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                  <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                    <TrendingUp size={20} className="text-slate-400" /> Топ-5 популярных мест
+                  <h3 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-wider">
+                    <TrendingUp size={16} className="text-slate-400" /> Статусы
                   </h3>
-                  <div className="h-[300px] w-full">
-                    {stats?.topResources && stats.topResources.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={stats.topResources} layout="vertical" margin={{ left: 20 }}>
-                          <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                          <XAxis type="number" allowDecimals={false} />
-                          <YAxis dataKey="name" type="category" width={80} tick={{fontSize: 12}} />
-                          <RechartsTooltip cursor={{fill: '#f1f5f9'}} />
-                          <Bar dataKey="count" name="Количество броней" barSize={24} radius={[0, 4, 4, 0]} isAnimationActive={false} style={{ fill: '#3b82f6' }} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium">Нет данных</div>
-                    )}
+                  <div className="h-[250px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={stats?.statusData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={5} dataKey="value" isAnimationActive={false}>
+                          {stats?.statusData.map((_: any, index: number) => (
+                            <Cell key={`cell-${index}`} style={{ fill: COLORS[index % COLORS.length] }} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip />
+                        <Legend verticalAlign="bottom" height={36} iconType="circle"/>
+                      </PieChart>
+                    </ResponsiveContainer>
                   </div>
+                </div>
+
+                {/* Топ ресурсов */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                  <h3 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-wider">
+                    <Monitor size={16} className="text-slate-400" /> Топ мест
+                  </h3>
+                  <div className="h-[250px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={stats?.topResources} layout="vertical" margin={{ left: 10, right: 10 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                        <XAxis type="number" allowDecimals={false} tick={{fontSize: 10}} axisLine={false} tickLine={false}/>
+                        <YAxis dataKey="name" type="category" width={70} tick={{fontSize: 10, fill: '#64748b'}} axisLine={false} tickLine={false}/>
+                        <RechartsTooltip cursor={{fill: '#f1f5f9'}} />
+                        <Bar dataKey="count" name="Броней" barSize={16} radius={[0, 4, 4, 0]} isAnimationActive={false} style={{ fill: '#3b82f6' }} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* 👇 Топ-3 клиента */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2 uppercase tracking-wider">
+                  <Crown size={16} className="text-amber-500" /> Самые активные клиенты
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {stats?.topClients.map((client: any, idx: number) => (
+                    <div key={idx} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50 relative overflow-hidden">
+                      {idx === 0 && <div className="absolute top-0 right-0 bg-amber-100 text-amber-700 text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase">VIP</div>}
+                      <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold shrink-0">
+                        {idx + 1}
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-800 truncate max-w-[150px]">{client.name}</p>
+                        <p className="text-xs text-slate-500">{client.count} броней</p>
+                      </div>
+                      <div className="ml-auto text-right">
+                        <p className="font-black text-emerald-600">{client.totalSpent} BYN</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </>
           )}
         </div>
-      )}
+      )};
 
       {/* ── ВКЛАДКА 2: БРОНИРОВАНИЯ ── */}
       {activeTab === 'bookings' && (
