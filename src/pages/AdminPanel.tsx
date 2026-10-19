@@ -369,7 +369,7 @@ export default function AdminPanel() {
               <button onClick={downloadCSV} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
                 <FileSpreadsheet size={16} /> В Excel
               </button>
-              <button onClick={downloadPDF} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+              <button onClick={downloadPDF} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
                 <FileText size={16} /> В PDF
               </button>
             </div>
@@ -750,7 +750,7 @@ export default function AdminPanel() {
         </div>
       )}
 
-       {/* 👇 СКРЫТЫЙ ШАБЛОН ДЛЯ PDF */}
+             {/* 👇 СКРЫТЫЙ ШАБЛОН ДЛЯ PDF */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
         <div ref={pdfRef} style={{ width: '740px', padding: '20px', backgroundColor: 'white', color: 'black', fontFamily: 'Arial, sans-serif' }}>
           
@@ -761,28 +761,29 @@ export default function AdminPanel() {
             </p>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', tableLayout: 'fixed' }}>
+          {/* 👇 Убрали tableLayout: 'fixed' и задали whiteSpace для колонок */}
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8fafc' }}>
-                <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', width: '12%', wordBreak: 'break-word' }}>Код</th>
-                <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', width: '22%', wordBreak: 'break-word' }}>Клиент</th>
-                <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', width: '18%', wordBreak: 'break-word' }}>Ресурс</th>
-                <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', width: '12%' }}>Дата</th>
-                <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', width: '14%' }}>Время</th>
-                <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', width: '12%' }}>Стоимость</th>
-                <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', width: '10%' }}>Статус</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', whiteSpace: 'nowrap' }}>Код</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left' }}>Клиент</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left' }}>Ресурс</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', whiteSpace: 'nowrap' }}>Дата</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', whiteSpace: 'nowrap' }}>Время</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', whiteSpace: 'nowrap' }}>Стоимость</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left' }}>Статус</th>
               </tr>
             </thead>
             <tbody>
               {filteredBookings.map((b: any, index: number) => (
                 <tr key={b.id} style={{ backgroundColor: index % 2 === 0 ? 'white' : '#f8fafc' }}>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '6px', wordBreak: 'break-word' }}>{b.bookingCode || b.id}</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '6px', wordBreak: 'break-word' }}>{b.user.fullName}</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '6px', wordBreak: 'break-word' }}>{b.resource.name}</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '6px' }}>{format(new Date(b.startDatetime), 'dd.MM.yyyy')}</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '6px' }}>{format(new Date(b.startDatetime), 'HH:mm')} - {format(new Date(b.endDatetime), 'HH:mm')}</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '6px' }}>{b.cost} BYN</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '6px', textTransform: 'capitalize', wordBreak: 'break-word' }}>{b.status}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>{b.bookingCode || b.id}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{b.user.fullName}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{b.resource.name}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>{format(new Date(b.startDatetime), 'dd.MM.yyyy')}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>{format(new Date(b.startDatetime), 'HH:mm')} - {format(new Date(b.endDatetime), 'HH:mm')}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>{b.cost} BYN</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px', textTransform: 'capitalize' }}>{b.status}</td>
                 </tr>
               ))}
             </tbody>
