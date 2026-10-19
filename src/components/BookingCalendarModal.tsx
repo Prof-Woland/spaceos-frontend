@@ -99,6 +99,7 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
         startDatetime: startObj.toISOString(),
         endDatetime: endObj.toISOString(),
         services: servicesPayload,
+        timezoneOffset: startObj.getTimezoneOffset(),
       });
       
       queryClient.invalidateQueries({ queryKey: ['booked-slots', resourceId, dateStr] });
