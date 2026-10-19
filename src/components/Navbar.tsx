@@ -90,15 +90,7 @@ export default function Navbar() {
             </button>
             {user ? (
               <div className="relative" ref={profileRef}>
-                <button 
-                  onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center gap-3 hover:bg-slate-50 p-1.5 pr-3 rounded-full border border-transparent hover:border-slate-200 transition-all"
-                >
-                  <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
-                    {initials}
-                  </div>
-                  <span className="text-sm font-semibold text-slate-700">{user.fullName}</span>
-                </button>
+                
 
                 {/* ВЫПАДАЮЩЕЕ МЕНЮ ПРОФИЛЯ */}
                 {isProfileOpen && (
@@ -115,6 +107,16 @@ export default function Navbar() {
                     <Link to="/profile" className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
                       <User size={16} /> Мой профиль
                     </Link>
+
+                    <button 
+                      onClick={() => setIsProfileOpen(!isProfileOpen)}
+                      className="flex items-center gap-3 hover:bg-slate-50 p-1.5 pr-3 rounded-full border border-transparent hover:border-slate-200 transition-all"
+                    >
+                      <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                        {initials}
+                      </div>
+                      <span className="text-sm font-semibold text-slate-700">{user.fullName}</span>
+                    </button>
 
                     <button 
                       onClick={logout}
