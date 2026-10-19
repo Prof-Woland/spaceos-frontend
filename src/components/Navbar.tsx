@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Menu, Ticket, X, ShieldAlert, User } from 'lucide-react'; // 👈 Добавлен User
+import { useTheme } from '../context/ThemeContext';
+import { LogOut, Menu, Ticket, X, ShieldAlert, User, Sun, Moon } from 'lucide-react'; // 👈 Добавлен User
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -10,6 +11,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const { theme, toggleTheme } = useTheme();
 
   // Закрываем профиль при клике вне его области
   useEffect(() => {
@@ -79,6 +81,13 @@ export default function Navbar() {
 
           {/* ПРАВАЯ ЧАСТЬ (ПРОФИЛЬ ИЛИ ВХОД) */}
           <div className="hidden md:flex items-center gap-4">
+              <button 
+              onClick={toggleTheme} 
+              className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
+              title="Переключить тему"
+            >
+              {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+            </button>
             {user ? (
               <div className="relative" ref={profileRef}>
                 <button 
