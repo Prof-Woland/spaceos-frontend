@@ -23,7 +23,7 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
 
   const dates = useMemo(() => Array.from({ length: 14 }).map((_, i) => addDays(new Date(), i)), []);
   const timeSlots = useMemo(() => Array.from({ length: 13 }).map((_, i) => `${String(i + 8).padStart(2, '0')}:00`), []);
-  const DURATION_OPTIONS = [1, 2, 3, 4, 5, 6, 8];
+  const DURATION_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
 
   const { data: services } = useQuery({
     queryKey: ['services'],
