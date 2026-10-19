@@ -166,18 +166,28 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
               {timeSlots.map(time => {
                 const booked = isSlotBooked(time);
                 const isSelected = selectedTime === time;
+                const hour = parseInt(time.split(':')[0]);
+                const isPeak = hour >= 18;
+                const isDiscount = hour >= 8 && hour < 11;
+                
                 return (
                   <button
                     key={time}
                     disabled={booked}
                     onClick={() => { setSelectedTime(time); setDuration(1); }}
-                    className={`py-2 md:py-3 rounded-lg text-xs md:text-sm font-bold border-2 transition-all ${
+                    className={`relative flex flex-col items-center justify-center py-2 rounded-lg text-xs md:text-sm font-bold border-2 transition-all ${
                       booked ? 'bg-gray-100 border-gray-100 text-gray-400 cursor-not-allowed line-through' :
                       isSelected ? 'bg-green-500 border-green-500 text-white shadow-md' :
                       'bg-white border-gray-200 hover:border-gray-300 text-gray-700'
                     }`}
                   >
-                    {time}
+                    <span>{time}</span>
+                    {/* 👇 Показываем бейджики */}
+                    {!booked && (
+                      <span className={`text-[9px] mt-0.5 ${isSelected ? 'text-green-100' : (isPeak ? 'text-red-500' : (isDiscount ? 'text-emerald-500' : 'text-transparent'))}`}>
+                        {isPeak ? '+20%' : (isDiscount ? '-10%' : '•')}
+                      </span>
+                    )}
                   </button>
                 );
               })}

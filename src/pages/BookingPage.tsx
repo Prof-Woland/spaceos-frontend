@@ -46,11 +46,6 @@ export default function BookingPage() {
           <p className="text-slate-500 dark:text-slate-400 mt-2">Найдите идеальное место для работы или встречи.</p>
         </div>
         
-        {/* Легенда */}
-        <div className="flex gap-4 text-sm text-slate-600 dark:text-slate-300">
-          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700 rounded-full"></div> Свободно</div>
-          <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 rounded-full"></div> Занято</div>
-        </div>
       </div>
 
       {/* 👇 ПАНЕЛЬ ФИЛЬТРОВ */}
