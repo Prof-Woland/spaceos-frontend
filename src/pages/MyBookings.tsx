@@ -358,9 +358,13 @@ END:VCALENDAR`;
 
       {paymentData && (
         <PaymentModal 
-          paymentId={paymentData.id} 
           amount={paymentData.amount} 
+          description="Оплата бронирования"
           onClose={() => setPaymentData(null)} 
+          onSuccess={async () => {
+            await api.patch(`/payments/${paymentData.id}/pay`);
+            queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
+          }}
         />
       )}
 

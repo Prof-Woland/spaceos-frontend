@@ -1,18 +1,16 @@
 import { useState } from 'react';
-import { api } from '../api/axios';
-import { useQueryClient } from '@tanstack/react-query';
-import { CreditCard, X, Lock } from 'lucide-react';
+import { X, Lock, CreditCard } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Spinner from './Spinner';
 
 interface Props {
-  paymentId: number;
   amount: number;
+  description?: string; // 👈 Для чего оплата (бронь или тариф)
   onClose: () => void;
+  onSuccess: () => Promise<void>; // 👈 Функция, которая вызовется после "оплаты"
 }
 
-export default function PaymentModal({ paymentId, amount, onClose }: Props) {
-  const queryClient = useQueryClient();
+export default function PaymentModal({ amount, description = 'Бронирование', onClose, onSuccess }: Props) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
@@ -22,12 +20,11 @@ export default function PaymentModal({ paymentId, amount, onClose }: Props) {
     e.preventDefault();
     setIsProcessing(true);
 
-    // Имитация задержки сети для реалистичности
+    // Имитация задержки банковской сети
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     try {
-      await api.patch(`/payments/${paymentId}/pay`);
-      queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
+      await onSuccess(); // 👈 Вызываем переданную функцию
       toast.success('Оплата прошла успешно!');
       onClose();
     } catch (err: any) {
@@ -36,7 +33,6 @@ export default function PaymentModal({ paymentId, amount, onClose }: Props) {
     }
   };
 
-  // Форматирование номера карты (добавляет пробелы каждые 4 цифры)
   const handleCardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, '').substring(0, 16);
     const formatted = val.replace(/(\d{4})(?=\d)/g, '$1 ');
@@ -45,10 +41,9 @@ export default function PaymentModal({ paymentId, amount, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         
-        {/* Шапка модалки */}
-        <div className="bg-slate-900 p-6 flex justify-between items-center text-white">
+        <div className="bg-slate-900 dark:bg-slate-950 p-6 flex justify-between items-center text-white">
           <div className="flex items-center gap-2">
             <Lock size={18} className="text-emerald-400" />
             <span className="font-bold">Безопасная оплата</span>
@@ -60,11 +55,10 @@ export default function PaymentModal({ paymentId, amount, onClose }: Props) {
 
         <form onSubmit={handlePay} className="p-6 md:p-8">
           <div className="text-center mb-8">
-            <p className="text-slate-500 text-sm mb-1">К оплате</p>
-            <p className="text-4xl font-black text-slate-900">{amount} BYN</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-1">{description}</p>
+            <p className="text-4xl font-black text-slate-900 dark:text-white">{amount} BYN</p>
           </div>
 
-          {/* Имитация карты */}
           <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-5 rounded-2xl shadow-lg mb-8 text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
             <CreditCard size={32} className="mb-6 opacity-80" />
@@ -77,42 +71,27 @@ export default function PaymentModal({ paymentId, amount, onClose }: Props) {
             </div>
           </div>
 
-          {/* Поля ввода */}
           <div className="space-y-4 mb-8">
             <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Номер карты</label>
+              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Номер карты</label>
               <input 
-                type="text" 
-                required
-                value={cardNumber} 
-                onChange={handleCardChange}
-                placeholder="0000 0000 0000 0000"
-                className="w-full p-3 border border-slate-300 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-mono"
+                type="text" required value={cardNumber} onChange={handleCardChange} placeholder="0000 0000 0000 0000"
+                className="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-xl outline-none focus:border-blue-500 bg-transparent text-slate-900 dark:text-white font-mono"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Срок действия</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Срок</label>
                 <input 
-                  type="text" 
-                  required
-                  maxLength={5}
-                  value={expiry} 
-                  onChange={e => setExpiry(e.target.value)}
-                  placeholder="ММ/ГГ"
-                  className="w-full p-3 border border-slate-300 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-mono"
+                  type="text" required maxLength={5} value={expiry} onChange={e => setExpiry(e.target.value)} placeholder="ММ/ГГ"
+                  className="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-xl outline-none focus:border-blue-500 bg-transparent text-slate-900 dark:text-white font-mono"
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">CVC</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">CVC</label>
                 <input 
-                  type="password" 
-                  required
-                  maxLength={3}
-                  value={cvc} 
-                  onChange={e => setCvc(e.target.value)}
-                  placeholder="•••"
-                  className="w-full p-3 border border-slate-300 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-mono"
+                  type="password" required maxLength={3} value={cvc} onChange={e => setCvc(e.target.value)} placeholder="•••"
+                  className="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-xl outline-none focus:border-blue-500 bg-transparent text-slate-900 dark:text-white font-mono"
                 />
               </div>
             </div>
@@ -124,14 +103,11 @@ export default function PaymentModal({ paymentId, amount, onClose }: Props) {
             className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg py-4 rounded-xl transition-all shadow-md disabled:opacity-70 flex justify-center items-center gap-2"
           >
             {isProcessing ? (
-              <><Spinner size="md" color="white" /> Обработка платежа...</>
+              <><Spinner size="md" color="white" /> Обработка...</>
             ) : (
               `Оплатить ${amount} BYN`
             )}
           </button>
-          <p className="text-center text-xs text-slate-400 mt-4">
-            Это симуляция платежа. Реальные деньги не списываются.
-          </p>
         </form>
       </div>
     </div>
