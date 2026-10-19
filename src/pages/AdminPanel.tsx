@@ -298,7 +298,7 @@ export default function AdminPanel() {
             </>
           )}
         </div>
-      )};
+      )}
 
       {/* ── ВКЛАДКА 2: БРОНИРОВАНИЯ ── */}
       {activeTab === 'bookings' && (
