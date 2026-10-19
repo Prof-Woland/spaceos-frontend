@@ -6,8 +6,10 @@ import { ru } from 'date-fns/locale';
 import { 
   Plus, Trash2, ShieldAlert, Monitor, Users, TrendingUp, 
   DollarSign, CalendarCheck, QrCode, CheckCircle, Search, Wrench, Check, 
-  Clock, Crown, FileSpreadsheet 
+  Clock, Crown, FileSpreadsheet, FileText
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { 
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
@@ -169,6 +171,47 @@ export default function AdminPanel() {
     r.location?.toLowerCase().includes(resourceSearchQuery.toLowerCase())
   ) || [];
 
+  const downloadPDF = () => {
+    if (!filteredBookings || filteredBookings.length === 0) {
+      return toast.error('Нет данных для экспорта');
+    }
+
+    const doc = new jsPDF();
+    
+    // Заголовок
+    doc.setFontSize(18);
+    doc.text('Отчет по бронированиям SpaceOS', 14, 22);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Дата формирования: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, 14, 30);
+    doc.text(`Всего записей: ${filteredBookings.length}`, 14, 35);
+
+    // Формируем данные для таблицы
+    const tableData = filteredBookings.map((b: any) => [
+      b.bookingCode || b.id,
+      b.user.fullName,
+      b.resource.name,
+      format(new Date(b.startDatetime), 'dd.MM.yyyy'),
+      `${format(new Date(b.startDatetime), 'HH:mm')} - ${format(new Date(b.endDatetime), 'HH:mm')}`,
+      `${b.cost} BYN`,
+      b.status
+    ]);
+
+    // Рисуем таблицу
+    autoTable(doc, {
+      startY: 40,
+      head: [['Код', 'Клиент', 'Ресурс', 'Дата', 'Время', 'Стоимость', 'Статус']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      styles: { font: 'helvetica', fontSize: 9, cellPadding: 3 },
+    });
+
+    doc.save(`SpaceBOS_Отчет_${format(new Date(), 'dd.MM.yyyy')}.pdf`);
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Заголовок */}
@@ -327,21 +370,26 @@ export default function AdminPanel() {
       {/* ── ВКЛАДКА 3: БРОНИРОВАНИЯ ── */}
       {activeTab === 'bookings' && (
          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex flex-col xl:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-3 w-full xl:w-auto">
               <Search size={20} className="text-slate-400 shrink-0" />
               <input 
                 type="text" 
                 placeholder="Поиск по ФИО, Email или коду..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full sm:w-64 bg-transparent outline-none text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400"
+                className="w-full xl:w-64 bg-transparent outline-none text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400"
               />
             </div>
             
-            <button onClick={downloadCSV} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
-              <FileSpreadsheet size={16} /> Выгрузить в Excel
-            </button>
+            <div className="flex flex-col sm:flex-row w-full xl:w-auto gap-2">
+              <button onClick={downloadCSV} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                <FileSpreadsheet size={16} /> В Excel
+              </button>
+              <button onClick={downloadPDF} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                <FileText size={16} /> В PDF
+              </button>
+            </div>
           </div>
 
          {isLoadingBookings ? (
