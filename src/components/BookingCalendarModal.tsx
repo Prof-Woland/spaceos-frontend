@@ -163,17 +163,23 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
               <Clock size={16} /> Доступное время (до 21:00)
             </h4>
             <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-4 gap-2">
-              {timeSlots.map(time => {
+                            {timeSlots.map(time => {
                 const booked = isSlotBooked(time);
                 const isSelected = selectedTime === time;
                 const hour = parseInt(time.split(':')[0]);
                 const isPeak = hour >= 18;
                 const isDiscount = hour >= 8 && hour < 11;
                 
+                // 👇 Текст для подсказки
+                const tooltipText = isPeak 
+                  ? 'Пиковое время (18:00-21:00). Наценка +20% из-за высокого спроса.' 
+                  : (isDiscount ? 'Утренняя скидка (08:00-11:00). Цена -10%.' : 'Стандартный тариф');
+
                 return (
                   <button
                     key={time}
                     disabled={booked}
+                    title={tooltipText} // 👈 Добавили подсказку
                     onClick={() => { setSelectedTime(time); setDuration(1); }}
                     className={`relative flex flex-col items-center justify-center py-2 rounded-lg text-xs md:text-sm font-bold border-2 transition-all ${
                       booked ? 'bg-gray-100 border-gray-100 text-gray-400 cursor-not-allowed line-through' :
@@ -182,7 +188,6 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
                     }`}
                   >
                     <span>{time}</span>
-                    {/* 👇 Показываем бейджики */}
                     {!booked && (
                       <span className={`text-[9px] mt-0.5 ${isSelected ? 'text-green-100' : (isPeak ? 'text-red-500' : (isDiscount ? 'text-emerald-500' : 'text-transparent'))}`}>
                         {isPeak ? '+20%' : (isDiscount ? '-10%' : '•')}
@@ -261,14 +266,39 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
             </>
           )}
 
-          {selectedTime && (
+                    {selectedTime && (
             <div className="mt-auto pt-4 border-t border-gray-100 bg-white sticky bottom-0">
+              
+              {/* 👇 ИНФО-БЛОК О ДИНАМИЧЕСКОЙ ЦЕНЕ */}
+              {(() => {
+                const hour = parseInt(selectedTime.split(':')[0]);
+                if (hour >= 18) {
+                  return (
+                    <div className="bg-amber-50 text-amber-700 p-2.5 rounded-lg text-xs font-medium mb-3 flex items-start gap-2 border border-amber-100">
+                      <span className="text-base leading-none">🔥</span>
+                      <p>Выбрано пиковое время (18:00–21:00). К стоимости применяется наценка <b>+20%</b>.</p>
+                    </div>
+                  );
+                }
+                if (hour >= 8 && hour < 11) {
+                  return (
+                    <div className="bg-emerald-50 text-emerald-700 p-2.5 rounded-lg text-xs font-medium mb-3 flex items-start gap-2 border border-emerald-100">
+                      <span className="text-base leading-none">🌅</span>
+                      <p>Действует утренняя скидка (08:00–11:00). Стоимость снижена на <b>10%</b>.</p>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* Стоимость доп услуг */}
               {totalServicesCost > 0 && (
                 <div className="flex justify-between items-center mb-3 text-sm text-slate-600">
                   <span>Стоимость доп. услуг:</span>
                   <span className="font-bold">{totalServicesCost} BYN</span>
                 </div>
               )}
+              
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
