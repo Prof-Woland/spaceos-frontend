@@ -167,7 +167,7 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
                 const booked = isSlotBooked(time);
                 const isSelected = selectedTime === time;
                 const hour = parseInt(time.split(':')[0]);
-                const isPeak = hour >= 18;
+                const isPeak = hour >= 17;
                 const isDiscount = hour >= 8 && hour < 11;
                 
                 // 👇 Текст для подсказки
@@ -272,7 +272,7 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
               {/* 👇 ИНФО-БЛОК О ДИНАМИЧЕСКОЙ ЦЕНЕ */}
               {(() => {
                 const hour = parseInt(selectedTime.split(':')[0]);
-                if (hour >= 18) {
+                if (hour >= 17) {
                   return (
                     <div className="bg-amber-50 text-amber-700 p-2.5 rounded-lg text-xs font-medium mb-3 flex items-start gap-2 border border-amber-100">
                       <span className="text-base leading-none">🔥</span>
