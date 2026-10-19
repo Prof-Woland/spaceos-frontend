@@ -7,7 +7,7 @@ import Spinner from '../components/Spinner';
 
 const START_HOUR = 8;
 const END_HOUR = 21;
-const TOTAL_HOURS = END_HOUR - START_HOUR; // 13 часов
+const TOTAL_HOURS = END_HOUR - START_HOUR; // 13 часов (с 8 до 21)
 
 export default function AdminTimeline() {
   const [selectedDate, setSelectedDate] = useState<Date>(startOfDay(new Date()));
@@ -30,7 +30,8 @@ export default function AdminTimeline() {
     isSameDay(new Date(b.startDatetime), selectedDate) && b.status !== 'отменена'
   ) || [];
 
-  const hours = Array.from({ length: TOTAL_HOURS + 1 }).map((_, i) => i + START_HOUR);
+  // 👇 Генерируем ровно 13 столбцов: с 8:00 до 20:00
+  const hours = Array.from({ length: TOTAL_HOURS }).map((_, i) => i + START_HOUR);
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -54,12 +55,13 @@ export default function AdminTimeline() {
           
           {/* Заголовки часов */}
           <div className="flex border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 sticky top-0 z-30">
-            {/* 👇 Левая колонка с фиксацией (sticky) */}
+            {/* Левая колонка с фиксацией (sticky) */}
             <div className="w-32 md:w-48 shrink-0 p-3 font-bold text-xs uppercase text-slate-500 border-r border-slate-200 dark:border-slate-700 flex items-center bg-slate-50 dark:bg-slate-900 sticky left-0 z-40 shadow-[2px_0_5px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_5px_rgba(0,0,0,0.2)]">
-              Ресурс
+              Ресурс / Время
             </div>
             
             <div className="flex flex-1 relative">
+              {/* 👇 Теперь рендерим 13 столбцов от 8:00 до 20:00 */}
               {hours.map((hour, index) => (
                 <div 
                   key={hour} 
@@ -88,7 +90,7 @@ export default function AdminTimeline() {
                   {/* Сетка времени и брони */}
                   <div className="flex-1 relative flex bg-[url('https://www.transparenttextures.com/patterns/gridme.png')] min-h-[60px] md:min-h-[80px]">
                     
-                    {/* Вертикальные линии часов */}
+                    {/* Вертикальные линии часов (теперь их 13) */}
                     {hours.map((hour, index) => (
                       <div 
                         key={hour} 
@@ -104,11 +106,13 @@ export default function AdminTimeline() {
                       const startHour = start.getHours() + start.getMinutes() / 60;
                       const endHour = end.getHours() + end.getMinutes() / 60;
                       
+                      // Ограничиваем рамками графика (8:00 - 21:00)
                       const visibleStart = Math.max(startHour, START_HOUR);
                       const visibleEnd = Math.min(endHour, END_HOUR);
                       
                       if (visibleStart >= visibleEnd) return null;
 
+                      // Считаем проценты (делим на 13 часов)
                       const leftPercent = ((visibleStart - START_HOUR) / TOTAL_HOURS) * 100;
                       const widthPercent = ((visibleEnd - visibleStart) / TOTAL_HOURS) * 100;
 
@@ -122,6 +126,7 @@ export default function AdminTimeline() {
                         <div 
                           key={booking.id}
                           style={{ left: `${leftPercent}%`, width: `${widthPercent}%` }}
+                          // 👇 Разделяем по высоте, чтобы не перекрывались
                           className={`absolute rounded-md border shadow-sm flex items-center px-1.5 md:px-2 overflow-hidden cursor-pointer hover:z-30 hover:scale-[1.02] transition-transform ${colorClass} ${
                             booking.status === 'активна' 
                               ? 'top-1 bottom-1/2 mb-0.5' // Активные сверху

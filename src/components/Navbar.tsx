@@ -22,7 +22,7 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Закрываем мобильное меню при смене страницы
+  // Закрываем меню при смене страницы
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsProfileOpen(false);
@@ -42,7 +42,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           
-          {/* ЛОГОТИП И ДЕСКТОПНЫЕ ССЫЛКИ */}
+          {/* ЛОГОТИП И ССЫЛКИ */}
           <div className="flex items-center gap-8">
             <Link to="/" className="text-2xl font-black text-blue-600 tracking-tighter">SpaceOS</Link>
             
@@ -63,7 +63,6 @@ export default function Navbar() {
                 );
               })}
               
-              {/* Ссылка админа */}
               {isAdmin && (
                 <Link 
                   to="/admin"
@@ -77,30 +76,49 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* ПРАВАЯ ЧАСТЬ (ПРОФИЛЬ ИЛИ ВХОД) */}
+          {/* ПРОФИЛЬ (DESKTOP) */}
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <div className="relative" ref={profileRef}>
                 
-                {/* Кнопка профиля */}
                 <button 
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className="flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800 p-1.5 pr-3 rounded-full border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all"
                 >
-                  <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
-                    {initials}
-                  </div>
+                  {/* Аватарка или инициалы */}
+                  {user.avatar ? (
+                    <img 
+                      src={user.avatar} 
+                      alt={user.fullName} 
+                      className="w-9 h-9 rounded-full object-cover shadow-sm border border-slate-200 dark:border-slate-700" 
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                      {initials}
+                    </div>
+                  )}
                   <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{user.fullName}</span>
                 </button>
 
-                {/* ВЫПАДАЮЩЕЕ МЕНЮ ПРОФИЛЯ */}
+                {/* ВЫПАДАЮЩЕЕ МЕНЮ */}
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-700 mb-1">
-                      <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{user.fullName}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
-                    </div>
+                  <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
                     
+                    {/* Шапка меню с аватаром */}
+                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 mb-1 flex items-center gap-3">
+                      {user.avatar ? (
+                        <img src={user.avatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover shadow-sm" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                          {initials}
+                        </div>
+                      )}
+                      <div className="overflow-hidden">
+                        <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{user.fullName}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                      </div>
+                    </div>
+
                     <Link to="/my-bookings" className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                       <Ticket size={16} /> Мои брони
                     </Link>
@@ -139,7 +157,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* МОБИЛЬНОЕ МЕНЮ (ВЫЕЗЖАЕТ) */}
+      {/* МОБИЛЬНОЕ МЕНЮ */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 px-4 pt-2 pb-4 space-y-1 shadow-lg absolute w-full">
           {navLinks.map(link => {
@@ -163,9 +181,19 @@ export default function Navbar() {
           <div className="border-t border-slate-100 dark:border-slate-800 pt-4 mt-2">
             {user ? (
               <>
-                <div className="px-4 mb-2">
-                  <p className="text-sm font-bold text-slate-800 dark:text-white">{user.fullName}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
+                {/* Инфо о юзере с аватаром в мобилке */}
+                <div className="px-4 mb-3 flex items-center gap-3">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover shadow-sm" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                      {initials}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-bold text-slate-800 dark:text-white">{user.fullName}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
+                  </div>
                 </div>
                 
                 <Link to="/profile" className="w-full text-left px-4 py-3 rounded-lg text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2">

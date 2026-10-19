@@ -1,65 +1,94 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/axios';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { User, Lock, CreditCard, Shield } from 'lucide-react';
+import { User, Lock, CreditCard, Shield, Camera } from 'lucide-react';
 import Spinner from '../components/Spinner';
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
-//   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Форма личных данных
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [phone, setPhone] = useState(''); 
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatar || null);
+  
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
-
-  // Форма смены пароля
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  // 👇 Получаем список всех тарифов
   const { data: tariffs } = useQuery({
     queryKey: ['tariffs'],
     queryFn: () => api.get('/tariffs').then(res => res.data),
   });
 
-  // 👇 Мутация смены тарифа
   const updateTariffMutation = useMutation({
     mutationFn: (tariffId: number) => api.patch('/users/profile/tariff', { tariffId }),
     onSuccess: (response) => {
-      // Axios возвращает ответ в поле data, поэтому достаем данные оттуда
       const updatedUser = response.data;
-      
-      toast.success(`Тариф успешно изменен на ${updatedUser.tariff.name}`);
-      
-      // Обновляем контекст, чтобы везде (в шапке и т.д.) обновился тариф
-      updateUser({ 
-        ...user!, 
-        tariffId: updatedUser.tariff.id, 
-        tariffName: updatedUser.tariff.name 
-      });
+      toast.success(`Тариф изменен на ${updatedUser.tariff.name}`);
+      updateUser({ ...user!, tariffId: updatedUser.tariff.id, tariffName: updatedUser.tariff.name });
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'Ошибка при смене тарифа');
-    }
   });
+
+  // 👇 Сжатие и конвертация картинки в Base64
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        // Создаем canvas для сжатия
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height && width > MAX_SIZE) {
+          height *= MAX_SIZE / width;
+          width = MAX_SIZE;
+        } else if (height > MAX_SIZE) {
+          width *= MAX_SIZE / height;
+          height = MAX_SIZE;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        // Получаем сжатую Base64 строку
+        const base64 = canvas.toDataURL('image/jpeg', 0.8);
+        setAvatarPreview(base64);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUpdatingProfile(true);
     try {
-      const { data } = await api.patch('/users/profile', { fullName, phone });
+      const { data } = await api.patch('/users/profile', { 
+        fullName, 
+        phone, 
+        avatar: avatarPreview // 👈 Отправляем аватарку
+      });
+      
       updateUser({ 
         ...user!, 
         fullName: data.fullName, 
+        avatar: data.avatar,
         roles: data.userRoles.map((ur: any) => ur.role.name) 
       });
-      toast.success('Профиль успешно обновлен');
+      toast.success('Профиль обновлен');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Ошибка при обновлении');
+      toast.error('Ошибка при обновлении');
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -70,11 +99,11 @@ export default function Profile() {
     setIsUpdatingPassword(true);
     try {
       await api.patch('/users/profile', { oldPassword, newPassword });
-      toast.success('Пароль успешно изменен');
+      toast.success('Пароль изменен');
       setOldPassword('');
       setNewPassword('');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Ошибка при смене пароля');
+      toast.error(err.response?.data?.message || 'Ошибка');
     } finally {
       setIsUpdatingPassword(false);
     }
@@ -82,70 +111,82 @@ export default function Profile() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-extrabold text-slate-900 mb-8">Мой профиль</h1>
+      <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-8">Мой профиль</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         
-        {/* Левая колонка: Инфо и Тариф */}
+        {/* Левая колонка */}
         <div className="space-y-6">
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
-            <div className="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl font-black">
-              {user?.fullName.substring(0, 1).toUpperCase()}
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 text-center flex flex-col items-center">
+            
+            {/* 👇 Блок с аватаркой */}
+            <div className="relative group mb-4">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-100 dark:border-slate-600 shadow-md bg-blue-50 dark:bg-slate-700 flex items-center justify-center text-blue-600 dark:text-blue-400 text-4xl font-black">
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  user?.fullName.substring(0, 1).toUpperCase()
+                )}
+              </div>
+              
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-transform hover:scale-110"
+                title="Загрузить фото"
+              >
+                <Camera size={16} />
+              </button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleImageUpload} 
+                accept="image/*" 
+                className="hidden" 
+              />
             </div>
-            <h2 className="text-xl font-bold text-slate-900">{user?.fullName}</h2>
-            <p className="text-slate-500 text-sm mb-4">{user?.email}</p>
-            <div className="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold uppercase">
+
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{user?.fullName}</h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">{user?.email}</p>
+            <div className="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold uppercase">
               <Shield size={14} /> {user?.roles[0] || 'Резидент'}
             </div>
           </div>
 
-          {/* 👇 Блок выбора тарифа */}
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <CreditCard size={16} /> Ваш тариф
+              <CreditCard size={16} /> Тариф
             </h3>
-            
-            <div className="mb-4">
-              <p className="text-lg font-bold text-slate-800">
-                {tariffs?.find((t: any) => t.id === user?.tariffId)?.name || user?.tariffName || 'Загрузка...'}
-              </p>
-            </div>
-
-            <label className="block text-xs font-bold text-slate-500 mb-2">Сменить тариф</label>
+            <p className="text-lg font-bold text-slate-800 dark:text-white mb-4">
+              {tariffs?.find((t: any) => t.id === user?.tariffId)?.name || user?.tariffName}
+            </p>
             <select 
               value={user?.tariffId || ''}
               onChange={(e) => updateTariffMutation.mutate(Number(e.target.value))}
-              disabled={updateTariffMutation.isPending}
-              className="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 bg-slate-50 cursor-pointer disabled:opacity-50"
+              className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white outline-none"
             >
-              <option value="" disabled>Выберите тариф</option>
-              {tariffs?.map((tariff: any) => (
-                <option key={tariff.id} value={tariff.id}>
-                  {tariff.name} ({tariff.pricePerMonth} BYN/мес)
-                </option>
+              {tariffs?.map((t: any) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
               ))}
             </select>
-            {updateTariffMutation.isPending && <p className="text-xs text-blue-500 mt-2">Сохранение...</p>}
           </div>
         </div>
 
-        {/* Правая колонка: Формы */}
+        {/* Правая колонка */}
         <div className="md:col-span-2 space-y-8">
           
-          {/* Личные данные */}
-          <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
-            <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-800 p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
               <User size={20} className="text-blue-500" /> Личные данные
             </h3>
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">ФИО</label>
-                  <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full p-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500" required />
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">ФИО</label>
+                  <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:border-blue-500" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Телефон</label>
-                  <input type="text" value={phone} onChange={e => setPhone(e.target.value)} className="w-full p-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500" placeholder="+375..." />
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Телефон</label>
+                  <input type="text" value={phone} onChange={e => setPhone(e.target.value)} className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:border-blue-500" placeholder="+375..." />
                 </div>
               </div>
               <button type="submit" disabled={isUpdatingProfile} className="bg-blue-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-blue-700 transition flex items-center gap-2 disabled:opacity-50">
@@ -154,21 +195,20 @@ export default function Profile() {
             </form>
           </div>
 
-          {/* Смена пароля */}
-          <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
-            <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-800 p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
               <Lock size={20} className="text-red-500" /> Безопасность
             </h3>
             <form onSubmit={handleUpdatePassword} className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Старый пароль</label>
-                <input type="password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} className="w-full p-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500" required />
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Старый пароль</label>
+                <input type="password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:border-blue-500" required />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Новый пароль</label>
-                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full p-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500" required minLength={6} />
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Новый пароль</label>
+                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:border-blue-500" required minLength={6} />
               </div>
-              <button type="submit" disabled={isUpdatingPassword} className="bg-slate-900 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-slate-800 transition flex items-center gap-2 disabled:opacity-50">
+              <button type="submit" disabled={isUpdatingPassword} className="bg-slate-900 dark:bg-slate-700 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-slate-800 transition flex items-center gap-2 disabled:opacity-50">
                 {isUpdatingPassword && <Spinner size="sm" color="white" />} Обновить пароль
               </button>
             </form>

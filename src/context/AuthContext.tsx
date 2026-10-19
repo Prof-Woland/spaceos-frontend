@@ -7,6 +7,7 @@ interface User {
   roles: string[];
   tariffId?: number;
   tariffName?: string;
+  avatar?: string | null;
 }
 
 interface AuthContextType {
