@@ -163,7 +163,12 @@ export default function AdminPanel() {
                   </div>
                   <div>
                     <p className="text-sm text-slate-500 font-bold uppercase tracking-wider">Фактическая выручка</p>
-                    <p className="text-4xl font-black text-slate-900">{stats?.totalRevenue} BYN</p>
+                    <p className="text-4xl font-black text-slate-900">
+                      {Number(stats?.totalRevenue || 0).toLocaleString('ru-RU', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })} BYN
+                    </p>
                   </div>
                 </div>
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-6">
