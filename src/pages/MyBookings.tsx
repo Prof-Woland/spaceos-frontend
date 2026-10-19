@@ -15,6 +15,7 @@ import { TicketTemplate } from '../components/TicketTemplate';
 import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 import Skeleton from '@/components/Skeleton';
+import PaymentModal from '../components/PaymentModal';
 
 export default function MyBookings() {
   const queryClient = useQueryClient();
@@ -24,6 +25,7 @@ export default function MyBookings() {
   const ticketRef = useRef<HTMLDivElement>(null);
   const [printBooking, setPrintBooking] = useState<any>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [paymentData, setPaymentData] = useState<{ id: number, amount: number } | null>(null);
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['my-bookings'],
@@ -228,9 +230,19 @@ export default function MyBookings() {
 
                   <div className="flex flex-wrap items-center gap-4 text-sm mt-auto border-t border-slate-100 pt-4">
                     <div className="flex items-center gap-1 text-slate-600 font-medium">
-                      <CreditCard size={16} className={booking.payment?.status === 'оплачено' ? 'text-emerald-500' : 'text-amber-500'} />
-                      {booking.payment?.status === 'оплачено' ? 'Оплачено' : 'Ожидает оплаты'}
-                    </div>
+                        <CreditCard size={16} className={booking.payment?.status === 'оплачено' ? 'text-emerald-500' : 'text-amber-500'} />
+                        {booking.payment?.status === 'оплачено' ? 'Оплачено' : 'Ожидает оплаты'}
+                      </div>
+                      
+                      {/* 👇 Кнопка "Оплатить" */}
+                      {isActive && booking.payment?.status !== 'оплачено' && (
+                        <button 
+                          onClick={() => setPaymentData({ id: booking.payment.id, amount: Number(booking.cost) })}
+                          className="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold transition-colors"
+                        >
+                          Оплатить
+                        </button>
+                      )}
                     
                     <div className="flex items-center gap-1 text-slate-500 bg-slate-100 px-2 py-1 rounded-md text-xs font-semibold">
                       <Coffee size={12} />
@@ -307,6 +319,13 @@ export default function MyBookings() {
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
         <TicketTemplate ref={ticketRef} booking={printBooking} />
       </div>
+      {paymentData && (
+        <PaymentModal 
+          paymentId={paymentData.id} 
+          amount={paymentData.amount} 
+          onClose={() => setPaymentData(null)} 
+        />
+      )}
     </div>
   );
 }
