@@ -73,9 +73,10 @@ export default function AdminPanel() {
 
   const checkInMutation = useMutation({
     mutationFn: (code: string) => api.patch(`/bookings/check-in/${code}`),
-    onSuccess: (data: any) => {
+    onSuccess: (res: any) => {
+      const resData = res.data; 
       // Умный парсинг ответа
-      const bookingData = data.booking ? data.booking : data;
+      const bookingData = resData.booking ? resData.booking : resData;
       setScannedBooking(bookingData);
       queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
       queryClient.invalidateQueries({ queryKey: ['resources'] });
