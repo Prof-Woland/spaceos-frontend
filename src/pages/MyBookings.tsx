@@ -4,7 +4,7 @@ import { api } from '../api/axios';
 import { Link } from 'react-router-dom';
 import { 
   Calendar, MapPin, Monitor, Users, PhoneCall, Sofa, 
-  XCircle, CheckCircle2, Ticket, ArrowRight, CreditCard, Info, Coffee, Download, Star
+  XCircle, CheckCircle2, Ticket, ArrowRight, CreditCard, Info, Coffee, Download, Star, CalendarPlus
 } from 'lucide-react';
 import { format, differenceInMinutes } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -15,7 +15,6 @@ import { TicketTemplate } from '../components/TicketTemplate';
 import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 
-// 👇 Импортируем новые модалки
 import PaymentModal from '../components/PaymentModal';
 import ReviewModal from '../components/ReviewModal';
 
@@ -23,12 +22,10 @@ export default function MyBookings() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
   
-  // Хуки для PDF
   const ticketRef = useRef<HTMLDivElement>(null);
   const [printBooking, setPrintBooking] = useState<any>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  // 👇 Хуки для модалок оплаты и отзывов
   const [paymentData, setPaymentData] = useState<{ id: number, amount: number } | null>(null);
   const [reviewData, setReviewData] = useState<{ id: number, name: string } | null>(null);
 
@@ -91,6 +88,37 @@ export default function MyBookings() {
     }, 100);
   };
 
+  // 👇 НОВАЯ ФУНКЦИЯ: Добавление в календарь
+  const downloadIcs = (booking: any) => {
+    const start = new Date(booking.startDatetime).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const end = new Date(booking.endDatetime).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+    const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//SpaceOS//Coworking//RU
+BEGIN:VEVENT
+UID:${booking.bookingCode || booking.id}@spaceos.by
+DTSTAMP:${now}
+DTSTART:${start}
+DTEND:${end}
+SUMMARY:Бронирование: ${booking.resource.name}
+DESCRIPTION:Ваша бронь в коворкинге SpaceOS успешно подтверждена. Код брони: ${booking.bookingCode}. Стоимость: ${booking.cost} BYN.
+LOCATION:${booking.resource.location || 'Коворкинг SpaceOS'}
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR`;
+
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Бронь_${booking.resource.name}.ics`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const activeBookings = bookings?.filter((b: any) => b.status === 'активна') || [];
   const historyBookings = bookings?.filter((b: any) => b.status !== 'активна') || [];
   const currentBookings = activeTab === 'active' ? activeBookings : historyBookings;
@@ -114,7 +142,6 @@ export default function MyBookings() {
     <div className="max-w-5xl mx-auto px-4 py-12">
       <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-8">Личный кабинет</h1>
       
-      {/* Вкладки */}
       <div className="flex space-x-1 bg-slate-200/50 dark:bg-slate-800/50 p-1 rounded-xl mb-8 w-fit">
         <button onClick={() => setActiveTab('active')} className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'active' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
           Активные ({activeBookings.length})
@@ -151,7 +178,6 @@ export default function MyBookings() {
             return (
               <div key={booking.id} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col md:flex-row relative">
                 
-                {/* ЛЕВАЯ ЧАСТЬ: QR-код и Время */}
                 <div className={`p-6 md:w-64 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r-2 border-dashed ${isActive ? 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50' : 'border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 opacity-70'}`}>
                   
                   {isActive && (
@@ -171,7 +197,6 @@ export default function MyBookings() {
                   </div>
                 </div>
 
-                {/* ПРАВАЯ ЧАСТЬ: Детали */}
                 <div className="p-6 flex-1 flex flex-col justify-between">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex gap-4 items-start">
@@ -214,7 +239,6 @@ export default function MyBookings() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-4 text-sm mt-auto border-t border-slate-100 dark:border-slate-700 pt-4">
-                    {/* Статус оплаты */}
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300 font-medium">
                         <CreditCard size={16} className={booking.payment?.status === 'оплачено' ? 'text-emerald-500' : 'text-amber-500'} />
@@ -247,7 +271,7 @@ export default function MyBookings() {
                 {/* ПРАВАЯ ПАНЕЛЬ ДЕЙСТВИЙ */}
                 <div className="flex md:flex-col border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700 shrink-0 md:w-16 bg-slate-50 dark:bg-slate-800/50">
                   
-                  {/* Кнопка Скачать PDF (для активных) */}
+                  {/* Скачать PDF */}
                   {isActive && (
                     <button
                       onClick={() => downloadTicket(booking)}
@@ -263,7 +287,18 @@ export default function MyBookings() {
                     </button>
                   )}
 
-                  {/* 👇 Кнопка Отзыва (для завершенных) */}
+                  {/* 👇 НОВАЯ КНОПКА: Добавить в календарь */}
+                  {isActive && (
+                    <button
+                      onClick={() => downloadIcs(booking)}
+                      className="flex-1 flex items-center justify-center py-3 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-500 transition-colors cursor-pointer group"
+                      title="Добавить в календарь (.ics)"
+                    >
+                      <CalendarPlus size={20} className="group-hover:scale-110 transition-transform" />
+                    </button>
+                  )}
+
+                  {/* Оставить отзыв */}
                   {isCompleted && !hasReview && (
                     <button 
                       onClick={() => setReviewData({ id: booking.id, name: booking.resource.name })}
@@ -274,7 +309,7 @@ export default function MyBookings() {
                     </button>
                   )}
 
-                  {/* Кнопка Отмены (для активных) */}
+                  {/* Отменить */}
                   {isActive && (
                     <button
                       onClick={() => {
@@ -317,12 +352,10 @@ export default function MyBookings() {
         </div>
       )}
 
-      {/* Скрытый контейнер для рендера PDF */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
         <TicketTemplate ref={ticketRef} booking={printBooking} />
       </div>
 
-      {/* Модалка оплаты */}
       {paymentData && (
         <PaymentModal 
           paymentId={paymentData.id} 
@@ -331,7 +364,6 @@ export default function MyBookings() {
         />
       )}
 
-      {/* Модалка отзыва */}
       {reviewData && (
         <ReviewModal 
           bookingId={reviewData.id} 
