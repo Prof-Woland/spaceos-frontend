@@ -183,11 +183,12 @@ export default function AdminPanel() {
     if (!element) return;
 
     const opt = {
-      margin:       10,
+      margin:       [10, 10, 10, 10], // Отступы: верх, лево, низ, право
       filename:     `SpaceOS_Отчет_${format(new Date(), 'dd.MM.yyyy')}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      html2canvas:  { scale: 2, useCORS: true, scrollY: 0, scrollX: 0 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // 👈 Запрещает рвать строки пополам
     };
 
     // @ts-ignore
@@ -749,39 +750,39 @@ export default function AdminPanel() {
         </div>
       )}
 
-      {/* 👇 СКРЫТЫЙ ШАБЛОН ДЛЯ PDF (В самом низу) */}
+       {/* 👇 СКРЫТЫЙ ШАБЛОН ДЛЯ PDF */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
-        <div ref={pdfRef} style={{ width: '800px', padding: '40px', backgroundColor: 'white', color: 'black', fontFamily: 'Arial, sans-serif' }}>
+        <div ref={pdfRef} style={{ width: '740px', padding: '20px', backgroundColor: 'white', color: 'black', fontFamily: 'Arial, sans-serif' }}>
           
           <div style={{ marginBottom: '20px', borderBottom: '2px solid #10b981', paddingBottom: '10px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0, color: '#0f172a' }}>Отчет по бронированиям SpaceOS</h1>
+            <h1 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0, color: '#0f172a' }}>Отчет по бронированиям SpaceOS</h1>
             <p style={{ fontSize: '12px', color: '#64748b', marginTop: '5px' }}>
               Дата формирования: {format(new Date(), 'dd.MM.yyyy HH:mm')} • Всего записей: {filteredBookings.length}
             </p>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', tableLayout: 'fixed' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8fafc' }}>
-                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Код</th>
-                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Клиент</th>
-                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Ресурс</th>
-                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Дата</th>
-                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Время</th>
-                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Стоимость</th>
-                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Статус</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', width: '12%', wordBreak: 'break-word' }}>Код</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', width: '22%', wordBreak: 'break-word' }}>Клиент</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', width: '18%', wordBreak: 'break-word' }}>Ресурс</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', width: '12%' }}>Дата</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', width: '14%' }}>Время</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', width: '12%' }}>Стоимость</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', width: '10%' }}>Статус</th>
               </tr>
             </thead>
             <tbody>
               {filteredBookings.map((b: any, index: number) => (
                 <tr key={b.id} style={{ backgroundColor: index % 2 === 0 ? 'white' : '#f8fafc' }}>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{b.bookingCode || b.id}</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{b.user.fullName}</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{b.resource.name}</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{format(new Date(b.startDatetime), 'dd.MM.yyyy')}</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{format(new Date(b.startDatetime), 'HH:mm')} - {format(new Date(b.endDatetime), 'HH:mm')}</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{b.cost} BYN</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '8px', textTransform: 'capitalize' }}>{b.status}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '6px', wordBreak: 'break-word' }}>{b.bookingCode || b.id}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '6px', wordBreak: 'break-word' }}>{b.user.fullName}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '6px', wordBreak: 'break-word' }}>{b.resource.name}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '6px' }}>{format(new Date(b.startDatetime), 'dd.MM.yyyy')}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '6px' }}>{format(new Date(b.startDatetime), 'HH:mm')} - {format(new Date(b.endDatetime), 'HH:mm')}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '6px' }}>{b.cost} BYN</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '6px', textTransform: 'capitalize', wordBreak: 'break-word' }}>{b.status}</td>
                 </tr>
               ))}
             </tbody>
@@ -792,7 +793,6 @@ export default function AdminPanel() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }
