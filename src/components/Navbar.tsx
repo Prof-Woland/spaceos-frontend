@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useLocation} from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Menu, Ticket, X, ShieldAlert } from 'lucide-react';
+import { LogOut, Menu, Ticket, X, ShieldAlert, User } from 'lucide-react'; // 👈 Добавлен User
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -101,9 +101,15 @@ export default function Navbar() {
                     <Link to="/my-bookings" className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
                       <Ticket size={16} /> Мои брони
                     </Link>
+                    
+                    {/* 👇 Новая ссылка на профиль */}
+                    <Link to="/profile" className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                      <User size={16} /> Мой профиль
+                    </Link>
+
                     <button 
                       onClick={logout}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors mt-1"
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors mt-1 border-t border-slate-100 pt-3"
                     >
                       <LogOut size={16} /> Выйти из системы
                     </button>
@@ -157,6 +163,12 @@ export default function Navbar() {
                   <p className="text-sm font-bold text-slate-800">{user.fullName}</p>
                   <p className="text-xs text-slate-500">{user.email}</p>
                 </div>
+                
+                {/* 👇 Мобильная ссылка на профиль */}
+                <Link to="/profile" className="w-full text-left px-4 py-3 rounded-lg text-base font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+                  <User size={18} /> Мой профиль
+                </Link>
+
                 <button onClick={logout} className="w-full text-left px-4 py-3 rounded-lg text-base font-medium text-red-600 hover:bg-red-50 flex items-center gap-2">
                   <LogOut size={18} /> Выйти
                 </button>

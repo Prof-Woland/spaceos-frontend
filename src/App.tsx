@@ -10,6 +10,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { useAuth } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
+import Profile from './pages/Profile';
 
 // Обертка для страниц с навбаром и футером
 const MainLayout = () => (
@@ -47,6 +48,7 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/booking" element={<BookingPage />} />
             <Route path="/my-bookings" element={<MyBookings />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<AdminPanel />} />
           </Route>
 

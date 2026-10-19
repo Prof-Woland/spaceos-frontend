@@ -14,6 +14,7 @@ import jsPDF from 'jspdf';
 import { TicketTemplate } from '../components/TicketTemplate';
 import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
+import Skeleton from '@/components/Skeleton';
 
 export default function MyBookings() {
   const queryClient = useQueryClient();
@@ -46,9 +47,33 @@ export default function MyBookings() {
 
   // 👇 ТЕПЕРЬ МОЖНО ДЕЛАТЬ РАННИЙ ВОЗВРАТ
   if (isLoading) return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh]">
-      <Spinner size="lg" />
-      <p className="mt-4 text-slate-500 font-medium">Загрузка ваших броней...</p>
+    <div className="max-w-5xl mx-auto px-4 py-12 space-y-6">
+      <Skeleton className="h-10 w-64 mb-8" />
+      <div className="flex gap-2 mb-8">
+        <Skeleton className="h-10 w-32" />
+        <Skeleton className="h-10 w-32" />
+      </div>
+      {[1, 2, 3].map(i => (
+        <div key={i} className="flex flex-col md:flex-row h-48 bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="w-full md:w-64 bg-slate-50 p-6 border-r border-slate-100 flex flex-col items-center justify-center gap-4">
+            <Skeleton className="h-24 w-24" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+          <div className="flex-1 p-6 flex flex-col justify-between">
+            <div className="flex gap-4">
+              <Skeleton className="h-12 w-12 rounded-xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            </div>
+            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-6 w-16" />
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 
