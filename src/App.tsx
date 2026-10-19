@@ -15,7 +15,7 @@ import Profile from './pages/Profile';
 // Обертка для страниц с навбаром и футером
 const MainLayout = () => (
   // flex-col и min-h-screen нужны, чтобы футер всегда прижимался к низу
-  <div className="min-h-screen bg-gray-50 flex flex-col">
+  <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col">
     <Navbar />
     {/* flex-grow заставляет контент занимать всё свободное место */}
     <main className="flex-grow">

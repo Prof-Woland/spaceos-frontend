@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import { LogOut, Menu, Ticket, X, ShieldAlert, User, Sun, Moon } from 'lucide-react'; // 👈 Добавлен User
+// import { useTheme } from '../context/ThemeContext';
+import { LogOut, Menu, Ticket, X, ShieldAlert, User } from 'lucide-react'; // 👈 Добавлен User
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -11,7 +11,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const { theme, toggleTheme } = useTheme();
+  // const { theme, toggleTheme } = useTheme();
 
   // Закрываем профиль при клике вне его области
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
+    <nav className="bg-white dark:bg-slate-900 shadow-sm border-b dark:border-slate-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           
@@ -81,21 +81,21 @@ export default function Navbar() {
 
           {/* ПРАВАЯ ЧАСТЬ (ПРОФИЛЬ ИЛИ ВХОД) */}
           <div className="hidden md:flex items-center gap-4">
-              <button 
+              {/* <button 
               onClick={toggleTheme} 
               className="p-2 rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
               title="Переключить тему"
             >
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-            </button>
+            </button> */}
             {user ? (
               <div className="relative" ref={profileRef}>
                 
 
                 {/* ВЫПАДАЮЩЕЕ МЕНЮ ПРОФИЛЯ */}
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="px-4 py-2 border-b border-slate-100 mb-1">
+                  <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-100 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="px-4 py-2 border-b dark:border-slate-800 border-slate-100 mb-1">
                       <p className="text-sm font-bold text-slate-800 truncate">{user.fullName}</p>
                       <p className="text-xs text-slate-500 truncate">{user.email}</p>
                     </div>
@@ -148,7 +148,7 @@ export default function Navbar() {
 
       {/* МОБИЛЬНОЕ МЕНЮ (ВЫЕЗЖАЕТ) */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-slate-100 px-4 pt-2 pb-4 space-y-1 shadow-lg absolute w-full">
+        <div className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-100 px-4 pt-2 pb-4 space-y-1 shadow-lg absolute w-full">
           {navLinks.map(link => {
             if (link.requireAuth && !user) return null;
             return (

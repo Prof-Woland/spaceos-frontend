@@ -26,7 +26,7 @@ export default function Landing() {
           </Link>
           <Link 
             to="/pricing" 
-            className="inline-block bg-white hover:bg-gray-100 text-gray-900 font-bold py-4 px-8 rounded-full text-lg transition-transform transform hover:scale-105 shadow-lg"
+            className="inline-block bg-white dark:bg-slate-900 hover:bg-gray-100 text-gray-900 font-bold py-4 px-8 rounded-full text-lg transition-transform transform hover:scale-105 shadow-lg"
           >
             Узнать тарифы
           </Link>

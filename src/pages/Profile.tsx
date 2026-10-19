@@ -88,7 +88,7 @@ export default function Profile() {
         
         {/* Левая колонка: Инфо и Тариф */}
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
             <div className="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl font-black">
               {user?.fullName.substring(0, 1).toUpperCase()}
             </div>
@@ -100,7 +100,7 @@ export default function Profile() {
           </div>
 
           {/* 👇 Блок выбора тарифа */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200">
             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <CreditCard size={16} /> Ваш тариф
             </h3>
@@ -133,7 +133,7 @@ export default function Profile() {
         <div className="md:col-span-2 space-y-8">
           
           {/* Личные данные */}
-          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+          <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
             <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
               <User size={20} className="text-blue-500" /> Личные данные
             </h3>
@@ -155,7 +155,7 @@ export default function Profile() {
           </div>
 
           {/* Смена пароля */}
-          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+          <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
             <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
               <Lock size={20} className="text-red-500" /> Безопасность
             </h3>
