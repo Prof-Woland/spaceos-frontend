@@ -605,6 +605,21 @@ export default function AdminPanel() {
                   </div>
                 </div>
 
+                {scannedBooking.payment?.status === 'оплачено' ? (
+                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 p-4 rounded-xl flex items-center justify-center gap-2 mb-6 font-bold">
+                    <CheckCircle size={20} /> Бронь оплачена
+                  </div>
+                ) : (
+                  <div className="bg-amber-50 border border-amber-200 text-amber-700 p-4 rounded-xl mb-6">
+                    <div className="flex items-center justify-center gap-2 font-bold mb-1">
+                      <DollarSign size={20} /> Внимание: Не оплачено!
+                    </div>
+                    <p className="text-xs text-center opacity-80">
+                      Клиент должен оплатить {scannedBooking.cost} BYN на ресепшене.
+                    </p>
+                  </div>
+                )}
+
                 <button onClick={() => setScannedBooking(null)} className="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-colors">
                   Пропустить группу
                 </button>
