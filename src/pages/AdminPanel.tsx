@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/axios';
 import { format } from 'date-fns';
@@ -6,10 +6,8 @@ import { ru } from 'date-fns/locale';
 import { 
   Plus, Trash2, ShieldAlert, Monitor, Users, TrendingUp, 
   DollarSign, CalendarCheck, QrCode, CheckCircle, Search, Wrench, Check, 
-  Clock, Crown, FileSpreadsheet, FileText
+  Clock, Crown, FileSpreadsheet, FileText 
 } from 'lucide-react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { 
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
@@ -19,6 +17,7 @@ import { Scanner } from '@yudiel/react-qr-scanner';
 import toast from 'react-hot-toast';
 import Spinner from '../components/Spinner';
 import AdminTimeline from '@/components/AdminTimeline';
+import html2pdf from 'html2pdf.js'; // 👈 Импорт html2pdf
 
 const COLORS = ['#10b981', '#ef4444', '#64748b']; 
 
@@ -35,6 +34,9 @@ export default function AdminPanel() {
   });
 
   const [scannedBooking, setScannedBooking] = useState<any>(null);
+  
+  // 👇 Ref для скрытого шаблона PDF
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   // ─── ЗАПРОСЫ ДАННЫХ ───
   const { data: stats, isLoading: isLoadingStats } = useQuery({
@@ -171,45 +173,25 @@ export default function AdminPanel() {
     r.location?.toLowerCase().includes(resourceSearchQuery.toLowerCase())
   ) || [];
 
+  // 👇 Экспорт в PDF
   const downloadPDF = () => {
     if (!filteredBookings || filteredBookings.length === 0) {
       return toast.error('Нет данных для экспорта');
     }
 
-    const doc = new jsPDF();
-    
-    // Заголовок
-    doc.setFontSize(18);
-    doc.text('Отчет по бронированиям SpaceOS', 14, 22);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Дата формирования: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, 14, 30);
-    doc.text(`Всего записей: ${filteredBookings.length}`, 14, 35);
+    const element = pdfRef.current;
+    if (!element) return;
 
-    // Формируем данные для таблицы
-    const tableData = filteredBookings.map((b: any) => [
-      b.bookingCode || b.id,
-      b.user.fullName,
-      b.resource.name,
-      format(new Date(b.startDatetime), 'dd.MM.yyyy'),
-      `${format(new Date(b.startDatetime), 'HH:mm')} - ${format(new Date(b.endDatetime), 'HH:mm')}`,
-      `${b.cost} BYN`,
-      b.status
-    ]);
+    const opt = {
+      margin:       10,
+      filename:     `SpaceOS_Отчет_${format(new Date(), 'dd.MM.yyyy')}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
 
-    // Рисуем таблицу
-    autoTable(doc, {
-      startY: 40,
-      head: [['Код', 'Клиент', 'Ресурс', 'Дата', 'Время', 'Стоимость', 'Статус']],
-      body: tableData,
-      theme: 'grid',
-      headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' },
-      alternateRowStyles: { fillColor: [248, 250, 252] },
-      styles: { font: 'helvetica', fontSize: 9, cellPadding: 3 },
-    });
-
-    doc.save(`SpaceBOS_Отчет_${format(new Date(), 'dd.MM.yyyy')}.pdf`);
+    // @ts-ignore
+    html2pdf().set(opt).from(element).save();
   };
 
   return (
@@ -396,7 +378,6 @@ export default function AdminPanel() {
             <div className="flex flex-col items-center justify-center py-32"><Spinner size="lg" /></div>
          ) : (
           <>
-            {/* Десктопная таблица */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
@@ -521,7 +502,6 @@ export default function AdminPanel() {
                <div className="flex flex-col items-center justify-center py-32"><Spinner size="lg" /></div>
             ) : (
               <>
-                {/* Десктопная таблица (Ресурсы) */}
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left text-sm whitespace-nowrap">
                     <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
@@ -566,7 +546,6 @@ export default function AdminPanel() {
                   </table>
                 </div>
 
-                {/* Мобильные карточки (Ресурсы) */}
                 <div className="md:hidden flex flex-col divide-y divide-slate-100 dark:divide-slate-700">
                   {filteredResources.map((r: any) => (
                     <div key={r.id} className="p-4 flex flex-col gap-3">
@@ -615,7 +594,6 @@ export default function AdminPanel() {
              <div className="flex flex-col items-center justify-center py-32"><Spinner size="lg" /></div>
           ) : (
             <>
-              {/* Десктопная таблица (Пользователи) */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-sm whitespace-nowrap">
                   <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
@@ -656,7 +634,6 @@ export default function AdminPanel() {
                 </table>
               </div>
 
-              {/* Мобильные карточки (Пользователи) */}
               <div className="md:hidden flex flex-col divide-y divide-slate-100 dark:divide-slate-700">
                 {users?.map((u: any) => {
                   const currentRole = u.userRoles[0]?.role?.name || 'Резидент';
@@ -771,6 +748,51 @@ export default function AdminPanel() {
           )}
         </div>
       )}
+
+      {/* 👇 СКРЫТЫЙ ШАБЛОН ДЛЯ PDF (В самом низу) */}
+      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+        <div ref={pdfRef} style={{ width: '800px', padding: '40px', backgroundColor: 'white', color: 'black', fontFamily: 'Arial, sans-serif' }}>
+          
+          <div style={{ marginBottom: '20px', borderBottom: '2px solid #10b981', paddingBottom: '10px' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0, color: '#0f172a' }}>Отчет по бронированиям SpaceOS</h1>
+            <p style={{ fontSize: '12px', color: '#64748b', marginTop: '5px' }}>
+              Дата формирования: {format(new Date(), 'dd.MM.yyyy HH:mm')} • Всего записей: {filteredBookings.length}
+            </p>
+          </div>
+
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#f8fafc' }}>
+                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Код</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Клиент</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Ресурс</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Дата</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Время</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Стоимость</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '8px', textAlign: 'left', fontWeight: 'bold' }}>Статус</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredBookings.map((b: any, index: number) => (
+                <tr key={b.id} style={{ backgroundColor: index % 2 === 0 ? 'white' : '#f8fafc' }}>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{b.bookingCode || b.id}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{b.user.fullName}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{b.resource.name}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{format(new Date(b.startDatetime), 'dd.MM.yyyy')}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{format(new Date(b.startDatetime), 'HH:mm')} - {format(new Date(b.endDatetime), 'HH:mm')}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{b.cost} BYN</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px', textTransform: 'capitalize' }}>{b.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
+          <div style={{ marginTop: '30px', fontSize: '10px', color: '#94a3b8', textAlign: 'center' }}>
+            Сгенерировано автоматически системой SpaceOS
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }
