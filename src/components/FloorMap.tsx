@@ -40,7 +40,7 @@ const ResourceCard = ({ res, onSelect }: { res: Resource, onSelect: any }) => {
     setShowTooltip(true);
   };
 
-  let Icon = Monitor;
+  let Icon = Laptop;
   let colorClass = 'bg-emerald-50 border-emerald-300';
   let textClass = 'text-emerald-600';
 
@@ -57,7 +57,7 @@ const ResourceCard = ({ res, onSelect }: { res: Resource, onSelect: any }) => {
     colorClass = 'bg-pink-50 border-pink-300';
     textClass = 'text-pink-600';
   } else if (res.equipment?.toLowerCase().includes('монитор')) {
-    Icon = Laptop;
+    Icon = Monitor;
   }
 
   const capacity = res.capacity || 0;
