@@ -5,8 +5,7 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { 
   Plus, Trash2, ShieldAlert, Monitor, Users, TrendingUp, 
-  DollarSign, CalendarCheck, QrCode, CheckCircle, Search, Wrench, Check, 
-  Clock, Crown, FileSpreadsheet 
+  DollarSign, CalendarCheck, QrCode, CheckCircle, Search, Wrench, Check, Clock, Crown, FileSpreadsheet 
 } from 'lucide-react';
 import { 
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, 
@@ -16,26 +15,22 @@ import {
 import { Scanner } from '@yudiel/react-qr-scanner';
 import toast from 'react-hot-toast';
 import Spinner from '../components/Spinner';
-import AdminTimeline from '@/components/AdminTimeline'; // 👈 Импорт Ганта
+import AdminTimeline from '@/components/AdminTimeline';
 
 const COLORS = ['#10b981', '#ef4444', '#64748b']; 
 
 export default function AdminPanel() {
   const queryClient = useQueryClient();
   
-  // Стейт для вкладок (добавили timeline)
   const [activeTab, setActiveTab] = useState<'stats' | 'timeline' | 'bookings' | 'resources' | 'users' | 'scanner'>('stats');
   
-  // Стейты для поиска
   const [searchQuery, setSearchQuery] = useState('');
   const [resourceSearchQuery, setResourceSearchQuery] = useState('');
 
-  // Стейт для создания ресурса
   const [newResource, setNewResource] = useState({
     name: '', resourceType: 'место', location: 'Зона А, 1 этаж', capacity: '', equipment: ''
   });
 
-  // Стейт для отсканированной брони
   const [scannedBooking, setScannedBooking] = useState<any>(null);
 
   // ─── ЗАПРОСЫ ДАННЫХ ───
@@ -128,7 +123,6 @@ export default function AdminPanel() {
     });
   };
 
-  // 👇 Экспорт в Excel (CSV)
   const downloadCSV = () => {
     if (!bookings || bookings.length === 0) return toast.error('Нет данных для экспорта');
 
@@ -162,6 +156,18 @@ export default function AdminPanel() {
     document.body.removeChild(link);
   };
 
+  // Фильтрация
+  const filteredBookings = bookings?.filter((b: any) => 
+    b.bookingCode?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    b.user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    b.user?.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
+
+  const filteredResources = resources?.filter((r: any) => 
+    r.name.toLowerCase().includes(resourceSearchQuery.toLowerCase()) || 
+    r.location?.toLowerCase().includes(resourceSearchQuery.toLowerCase())
+  ) || [];
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Заголовок */}
@@ -171,30 +177,18 @@ export default function AdminPanel() {
         </div>
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white">Панель управления</h1>
-          <p className="text-sm md:text-base text-slate-500 dark:text-slate-400">Управление коворкингом, аналитика и персонал</p>
+          <p className="text-sm md:text-base text-slate-500 dark:text-slate-400">Аналитика, управление ресурсами и пользователями</p>
         </div>
       </div>
 
       {/* Вкладки */}
       <div className="flex space-x-2 border-b border-slate-200 dark:border-slate-700 mb-6 overflow-x-auto custom-scrollbar pb-1">
-        <button onClick={() => setActiveTab('stats')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'stats' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'}`}>
-          Аналитика
-        </button>
-        <button onClick={() => setActiveTab('timeline')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'timeline' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'}`}>
-          Гант (Расписание)
-        </button>
-        <button onClick={() => setActiveTab('bookings')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'bookings' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'}`}>
-          Бронирования
-        </button>
-        <button onClick={() => setActiveTab('resources')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'resources' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'}`}>
-          Ресурсы
-        </button>
-        <button onClick={() => setActiveTab('users')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap flex items-center gap-2 ${activeTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'}`}>
-          <Users size={18} /> Пользователи
-        </button>
-        <button onClick={() => setActiveTab('scanner')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap flex items-center gap-2 ${activeTab === 'scanner' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'}`}>
-          <QrCode size={18} /> Сканер
-        </button>
+        <button onClick={() => setActiveTab('stats')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'stats' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}>Аналитика</button>
+        <button onClick={() => setActiveTab('timeline')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'timeline' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}>Гант</button>
+        <button onClick={() => setActiveTab('bookings')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'bookings' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}>Брони</button>
+        <button onClick={() => setActiveTab('resources')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'resources' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}>Ресурсы</button>
+        <button onClick={() => setActiveTab('users')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap flex items-center gap-2 ${activeTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}><Users size={18} /> Пользователи</button>
+        <button onClick={() => setActiveTab('scanner')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap flex items-center gap-2 ${activeTab === 'scanner' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}><QrCode size={18} /> Сканер</button>
       </div>
 
       {/* ── ВКЛАДКА 1: АНАЛИТИКА ── */}
@@ -207,65 +201,48 @@ export default function AdminPanel() {
               {/* KPI Карточки */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-6">
-                  <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                    <DollarSign size={32} />
-                  </div>
+                  <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><DollarSign size={32} /></div>
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Выручка</p>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white">
-                      {Number(stats?.totalRevenue || 0).toLocaleString('ru-RU', { minimumFractionDigits: 2 })} BYN
-                    </p>
+                    <p className="text-3xl font-black text-slate-900 dark:text-white">{Number(stats?.totalRevenue || 0).toLocaleString('ru-RU', { minimumFractionDigits: 2 })} BYN</p>
                   </div>
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-6">
-                  <div className="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                    <CalendarCheck size={32} />
-                  </div>
+                  <div className="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><CalendarCheck size={32} /></div>
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Всего броней</p>
                     <p className="text-3xl font-black text-slate-900 dark:text-white">{stats?.totalBookings}</p>
                   </div>
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-6">
-                  <div className="w-16 h-16 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
-                    <TrendingUp size={32} />
-                  </div>
+                  <div className="w-16 h-16 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0"><TrendingUp size={32} /></div>
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Средний чек</p>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white">
-                      {Number(stats?.averageCheck || 0).toFixed(2)} BYN
-                    </p>
+                    <p className="text-3xl font-black text-slate-900 dark:text-white">{Number(stats?.averageCheck || 0).toFixed(2)} BYN</p>
                   </div>
                 </div>
               </div>
 
               {/* График выручки по дням */}
               <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-                  <TrendingUp size={20} className="text-slate-400" /> Выручка за 7 дней
-                </h3>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2"><TrendingUp size={20} className="text-slate-400" /> Выручка за 7 дней</h3>
                 <div className="h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={stats?.revenueByDay} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                       <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
                       <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
-                      <RechartsTooltip 
-                        formatter={(value: any) => [`${Number(value).toFixed(2)} BYN`, 'Выручка']}
-                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                      />
+                      <RechartsTooltip formatter={(value: any) => [`${Number(value).toFixed(2)} BYN`, 'Выручка']} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                       <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981' }} activeDot={{ r: 6 }} isAnimationActive={false} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Сетка графиков (Пиковые часы, Статусы, Топ мест) */}
+              {/* Сетка графиков */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2 uppercase tracking-wider">
-                    <Clock size={16} className="text-slate-400" /> Пиковые часы
-                  </h3>
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2 uppercase tracking-wider"><Clock size={16} className="text-slate-400" /> Пиковые часы</h3>
                   <div className="h-[250px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={stats?.peakHours} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
@@ -278,18 +255,13 @@ export default function AdminPanel() {
                     </ResponsiveContainer>
                   </div>
                 </div>
-
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2 uppercase tracking-wider">
-                    <TrendingUp size={16} className="text-slate-400" /> Статусы
-                  </h3>
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2 uppercase tracking-wider"><TrendingUp size={16} className="text-slate-400" /> Статусы</h3>
                   <div className="h-[250px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie data={stats?.statusData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={5} dataKey="value" isAnimationActive={false}>
-                          {stats?.statusData.map((_: any, index: number) => (
-                            <Cell key={`cell-${index}`} style={{ fill: COLORS[index % COLORS.length] }} />
-                          ))}
+                          {stats?.statusData.map((_: any, index: number) => (<Cell key={`cell-${index}`} style={{ fill: COLORS[index % COLORS.length] }} />))}
                         </Pie>
                         <RechartsTooltip />
                         <Legend verticalAlign="bottom" height={36} iconType="circle"/>
@@ -297,11 +269,8 @@ export default function AdminPanel() {
                     </ResponsiveContainer>
                   </div>
                 </div>
-
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2 uppercase tracking-wider">
-                    <Monitor size={16} className="text-slate-400" /> Топ мест
-                  </h3>
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2 uppercase tracking-wider"><Monitor size={16} className="text-slate-400" /> Топ мест</h3>
                   <div className="h-[250px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={stats?.topResources} layout="vertical" margin={{ left: 10, right: 10 }}>
@@ -318,9 +287,7 @@ export default function AdminPanel() {
 
               {/* Выручка по ресурсам */}
               <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 mt-6">
-                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-                  <DollarSign size={20} className="text-slate-400" /> Выручка по ресурсам (Топ-5)
-                </h3>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2"><DollarSign size={20} className="text-slate-400" /> Выручка по ресурсам (Топ-5)</h3>
                 <div className="h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={stats?.revenueByResource} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -336,16 +303,12 @@ export default function AdminPanel() {
 
               {/* Топ-3 клиента */}
               <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2 uppercase tracking-wider">
-                  <Crown size={16} className="text-amber-500" /> Самые активные клиенты
-                </h3>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2 uppercase tracking-wider"><Crown size={16} className="text-amber-500" /> Самые активные клиенты</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {stats?.topClients.map((client: any, idx: number) => (
                     <div key={idx} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 relative overflow-hidden">
                       {idx === 0 && <div className="absolute top-0 right-0 bg-amber-100 text-amber-700 text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase">VIP</div>}
-                      <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold shrink-0">
-                        {idx + 1}
-                      </div>
+                      <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold shrink-0">{idx + 1}</div>
                       <div>
                         <p className="font-bold text-slate-800 dark:text-white truncate max-w-[150px]">{client.name}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400">{client.count} броней</p>
@@ -370,7 +333,7 @@ export default function AdminPanel() {
          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
           <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-3 w-full sm:w-auto">
-              <Search size={20} className="text-slate-400" />
+              <Search size={20} className="text-slate-400 shrink-0" />
               <input 
                 type="text" 
                 placeholder="Поиск по ФИО, Email или коду..." 
@@ -391,51 +354,75 @@ export default function AdminPanel() {
          {isLoadingBookings ? (
             <div className="flex flex-col items-center justify-center py-32"><Spinner size="lg" /></div>
          ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
-                <tr>
-                  <th className="p-4 font-semibold">Код</th>
-                  <th className="p-4 font-semibold">Клиент</th>
-                  <th className="p-4 font-semibold">Ресурс</th>
-                  <th className="p-4 font-semibold">Дата и время</th>
-                  <th className="p-4 font-semibold">Статус</th>
-                  <th className="p-4 font-semibold text-right">Стоимость</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                {bookings
-                  ?.filter((b: any) => 
-                    b.bookingCode?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    b.user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    b.user?.email?.toLowerCase().includes(searchQuery.toLowerCase())
-                  )
-                  .map((b: any) => (
-                  <tr key={b.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50">
-                    <td className="p-4 font-mono text-xs text-slate-500 dark:text-slate-400 font-bold">{b.bookingCode || b.id}</td>
-                    <td className="p-4">
+          <>
+            {/* Десктопная таблица */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                  <tr>
+                    <th className="p-4 font-semibold">Код</th>
+                    <th className="p-4 font-semibold">Клиент</th>
+                    <th className="p-4 font-semibold">Ресурс</th>
+                    <th className="p-4 font-semibold">Дата и время</th>
+                    <th className="p-4 font-semibold">Статус</th>
+                    <th className="p-4 font-semibold text-right">Стоимость</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                  {filteredBookings.map((b: any) => (
+                    <tr key={b.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50">
+                      <td className="p-4 font-mono text-xs text-slate-500 dark:text-slate-400 font-bold">{b.bookingCode || b.id}</td>
+                      <td className="p-4">
+                        <div className="font-bold text-slate-800 dark:text-white">{b.user.fullName}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">{b.user.email}</div>
+                      </td>
+                      <td className="p-4 font-medium text-slate-700 dark:text-slate-300">{b.resource.name}</td>
+                      <td className="p-4 text-slate-600 dark:text-slate-400">
+                        {format(new Date(b.startDatetime), 'd MMM, HH:mm', { locale: ru })} — {format(new Date(b.endDatetime), 'HH:mm')}
+                      </td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 rounded text-xs font-bold ${
+                          b.status === 'активна' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 
+                          b.status === 'отменена' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 
+                          'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                        }`}>{b.status}</span>
+                      </td>
+                      <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{b.cost} BYN</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Мобильные карточки */}
+            <div className="md:hidden flex flex-col divide-y divide-slate-100 dark:divide-slate-700">
+              {filteredBookings.map((b: any) => (
+                <div key={b.id} className="p-4 flex flex-col gap-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                  <div className="flex justify-between items-start">
+                    <div>
                       <div className="font-bold text-slate-800 dark:text-white">{b.user.fullName}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400">{b.user.email}</div>
-                    </td>
-                    <td className="p-4 font-medium text-slate-700 dark:text-slate-300">{b.resource.name}</td>
-                    <td className="p-4 text-slate-600 dark:text-slate-400">
+                    </div>
+                    <span className={`px-2 py-1 rounded text-[10px] font-bold ${
+                      b.status === 'активна' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 
+                      b.status === 'отменена' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 
+                      'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                    }`}>{b.status}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm mt-1">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{b.resource.name}</span>
+                    <span className="font-mono text-xs text-slate-400">{b.bookingCode || b.id}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600 dark:text-slate-400">
                       {format(new Date(b.startDatetime), 'd MMM, HH:mm', { locale: ru })} — {format(new Date(b.endDatetime), 'HH:mm')}
-                    </td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded text-xs font-bold ${
-                        b.status === 'активна' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 
-                        b.status === 'отменена' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 
-                        'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
-                      }`}>
-                        {b.status}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{b.cost} BYN</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </span>
+                    <span className="font-bold text-slate-900 dark:text-white">{b.cost} BYN</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
          )}
        </div>
       )}
@@ -479,7 +466,7 @@ export default function AdminPanel() {
 
           <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden h-fit">
             <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex items-center gap-3">
-              <Search size={20} className="text-slate-400" />
+              <Search size={20} className="text-slate-400 shrink-0" />
               <input 
                 type="text" 
                 placeholder="Поиск по названию или локации..." 
@@ -492,67 +479,89 @@ export default function AdminPanel() {
             {isLoadingResources ? (
                <div className="flex flex-col items-center justify-center py-32"><Spinner size="lg" /></div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm whitespace-nowrap">
-                  <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
-                    <tr>
-                      <th className="p-4 font-semibold">Название</th>
-                      <th className="p-4 font-semibold">Статус</th>
-                      <th className="p-4 font-semibold text-right">Действия</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                    {resources
-                      ?.filter((r: any) => 
-                        r.name.toLowerCase().includes(resourceSearchQuery.toLowerCase()) || 
-                        r.location?.toLowerCase().includes(resourceSearchQuery.toLowerCase())
-                      )
-                      .map((r: any) => (
-                      <tr key={r.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50">
-                        <td className="p-4 font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                          {r.resourceType === 'зал' ? <Users size={16} className="text-indigo-500"/> : <Monitor size={16} className="text-emerald-500"/>}
-                          {r.name}
-                          <span className="text-[10px] text-slate-400 font-normal ml-2 hidden sm:inline">{r.location}</span>
-                        </td>
-                        
-                        <td className="p-4">
-                          <span className={`px-2 py-1 rounded text-xs font-bold ${
-                            r.status === 'свободен' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 
-                            r.status === 'занят' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 
-                            'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                          }`}>
-                            {r.status}
-                          </span>
-                        </td>
-
-                        <td className="p-4 text-right flex items-center justify-end gap-2">
-                          {r.status === 'ремонт' ? (
-                            <button 
-                              onClick={() => updateResourceStatusMutation.mutate({ id: r.id, status: 'свободен' })}
-                              className="flex items-center gap-1 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/40 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
-                              title="Разрешить"
-                            >
-                              <Check size={14} /> <span className="hidden sm:inline">Разрешить</span>
-                            </button>
-                          ) : (
-                            <button 
-                              onClick={() => updateResourceStatusMutation.mutate({ id: r.id, status: 'ремонт' })}
-                              className="flex items-center gap-1 text-amber-600 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 dark:hover:bg-amber-900/40 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
-                              title="В ремонт"
-                            >
-                              <Wrench size={14} /> <span className="hidden sm:inline">В ремонт</span>
-                            </button>
-                          )}
-
-                          <button onClick={() => { if(window.confirm('Удалить ресурс?')) deleteResourceMutation.mutate(r.id) }} className="text-red-400 hover:text-red-600 p-2 transition-colors ml-1">
-                            <Trash2 size={18} />
-                          </button>
-                        </td>
+              <>
+                {/* Десктопная таблица ресурсов */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left text-sm whitespace-nowrap">
+                    <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                      <tr>
+                        <th className="p-4 font-semibold">Название</th>
+                        <th className="p-4 font-semibold">Статус</th>
+                        <th className="p-4 font-semibold text-right">Действия</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                      {filteredResources.map((r: any) => (
+                        <tr key={r.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50">
+                          <td className="p-4 font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                            {r.resourceType === 'зал' ? <Users size={16} className="text-indigo-500"/> : <Monitor size={16} className="text-emerald-500"/>}
+                            {r.name}
+                            <span className="text-[10px] text-slate-400 font-normal ml-2">{r.location}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className={`px-2 py-1 rounded text-xs font-bold ${
+                              r.status === 'свободен' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 
+                              r.status === 'занят' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 
+                              'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                            }`}>{r.status}</span>
+                          </td>
+                          <td className="p-4 text-right flex items-center justify-end gap-2">
+                            {r.status === 'ремонт' ? (
+                              <button onClick={() => updateResourceStatusMutation.mutate({ id: r.id, status: 'свободен' })} className="flex items-center gap-1 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/20 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">
+                                <Check size={14} /> Разрешить
+                              </button>
+                            ) : (
+                              <button onClick={() => updateResourceStatusMutation.mutate({ id: r.id, status: 'ремонт' })} className="flex items-center gap-1 text-amber-600 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">
+                                <Wrench size={14} /> В ремонт
+                              </button>
+                            )}
+                            <button onClick={() => { if(window.confirm('Удалить ресурс?')) deleteResourceMutation.mutate(r.id) }} className="text-red-400 hover:text-red-600 p-2 transition-colors">
+                              <Trash2 size={18} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Мобильные карточки ресурсов */}
+                <div className="md:hidden flex flex-col divide-y divide-slate-100 dark:divide-slate-700">
+                  {filteredResources.map((r: any) => (
+                    <div key={r.id} className="p-4 flex flex-col gap-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-start gap-2">
+                          {r.resourceType === 'зал' ? <Users size={16} className="text-indigo-500 mt-0.5"/> : <Monitor size={16} className="text-emerald-500 mt-0.5"/>}
+                          <div>
+                            <div className="font-bold text-slate-800 dark:text-white">{r.name}</div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{r.location}</div>
+                          </div>
+                        </div>
+                        <span className={`px-2 py-1 rounded text-[10px] font-bold shrink-0 ${
+                          r.status === 'свободен' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 
+                          r.status === 'занят' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 
+                          'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                        }`}>{r.status}</span>
+                      </div>
+                      
+                      <div className="flex justify-end items-center gap-2 mt-1">
+                        {r.status === 'ремонт' ? (
+                          <button onClick={() => updateResourceStatusMutation.mutate({ id: r.id, status: 'свободен' })} className="flex items-center gap-1 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/20 px-3 py-2 rounded-lg text-xs font-bold transition-colors">
+                            <Check size={14} /> Разрешить
+                          </button>
+                        ) : (
+                          <button onClick={() => updateResourceStatusMutation.mutate({ id: r.id, status: 'ремонт' })} className="flex items-center gap-1 text-amber-600 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 px-3 py-2 rounded-lg text-xs font-bold transition-colors">
+                            <Wrench size={14} /> В ремонт
+                          </button>
+                        )}
+                        <button onClick={() => { if(window.confirm('Удалить ресурс?')) deleteResourceMutation.mutate(r.id) }} className="text-red-400 hover:text-red-600 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg transition-colors">
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
