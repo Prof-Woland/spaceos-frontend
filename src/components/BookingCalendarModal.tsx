@@ -172,7 +172,7 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
                 
                 // 👇 Текст для подсказки
                 const tooltipText = isPeak 
-                  ? 'Пиковое время (18:00-21:00). Наценка +20% из-за высокого спроса.' 
+                  ? 'Пиковое время (17:00-21:00). Наценка +20% из-за высокого спроса.' 
                   : (isDiscount ? 'Утренняя скидка (08:00-11:00). Цена -10%.' : 'Стандартный тариф');
 
                 return (
@@ -276,7 +276,7 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
                   return (
                     <div className="bg-amber-50 text-amber-700 p-2.5 rounded-lg text-xs font-medium mb-3 flex items-start gap-2 border border-amber-100">
                       <span className="text-base leading-none">🔥</span>
-                      <p>Выбрано пиковое время (18:00–21:00). К стоимости применяется наценка <b>+20%</b>.</p>
+                      <p>Выбрано пиковое время (17:00–21:00). К стоимости применяется наценка <b>+20%</b>.</p>
                     </div>
                   );
                 }
