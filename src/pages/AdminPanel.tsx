@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { 
   Plus, Trash2, ShieldAlert, Monitor, Users, TrendingUp, 
-  DollarSign, CalendarCheck, QrCode, CheckCircle, Search 
+  DollarSign, CalendarCheck, QrCode, CheckCircle, Search, Wrench, Check
 } from 'lucide-react';
 import { 
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, 
@@ -15,21 +15,21 @@ import { Scanner } from '@yudiel/react-qr-scanner';
 import toast from 'react-hot-toast';
 import Spinner from '../components/Spinner';
 
-const COLORS = ['#10b981', '#ef4444', '#64748b']; // Зеленый, Красный, Серый для статусов
+const COLORS = ['#10b981', '#ef4444', '#64748b']; 
 
 export default function AdminPanel() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'stats' | 'bookings' | 'resources' | 'users' | 'scanner'>('stats');
   
-  // Стейт для поиска по броням
+  // Стейты для поиска
   const [searchQuery, setSearchQuery] = useState('');
+  const [resourceSearchQuery, setResourceSearchQuery] = useState(''); // 👈 Поиск для ресурсов
 
   // Стейт для создания ресурса
   const [newResource, setNewResource] = useState({
     name: '', resourceType: 'место', location: 'Зона А, 1 этаж', capacity: '', equipment: ''
   });
 
-  // Стейт для отсканированной брони
   const [scannedBooking, setScannedBooking] = useState<any>(null);
 
   // ─── ЗАПРОСЫ ДАННЫХ ───
@@ -71,11 +71,21 @@ export default function AdminPanel() {
     }
   });
 
+  // 👇 НОВАЯ МУТАЦИЯ: Изменение статуса ресурса (Ремонт / Свободен)
+  const updateResourceStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number, status: string }) => 
+      api.patch(`/resources/${id}`, { status }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+      const msg = variables.status === 'ремонт' ? 'Ресурс отправлен в ремонт' : 'Ресурс доступен для брони';
+      toast.success(msg);
+    },
+  });
+
   const checkInMutation = useMutation({
     mutationFn: (code: string) => api.patch(`/bookings/check-in/${code}`),
-    onSuccess: (res: any) => {
-      const resData = res.data; 
-      // Умный парсинг ответа
+    onSuccess: (response: any) => {
+      const resData = response.data;
       const bookingData = resData.booking ? resData.booking : resData;
       setScannedBooking(bookingData);
       queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
@@ -155,7 +165,6 @@ export default function AdminPanel() {
             </div>
           ) : (
             <>
-              {/* KPI Карточки */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-6">
                   <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
@@ -164,10 +173,7 @@ export default function AdminPanel() {
                   <div>
                     <p className="text-sm text-slate-500 font-bold uppercase tracking-wider">Фактическая выручка</p>
                     <p className="text-4xl font-black text-slate-900">
-                      {Number(stats?.totalRevenue || 0).toLocaleString('ru-RU', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })} BYN
+                      {Number(stats?.totalRevenue || 0).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} BYN
                     </p>
                   </div>
                 </div>
@@ -182,10 +188,7 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              {/* Графики */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                {/* Круговая диаграмма статусов */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                   <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
                     <TrendingUp size={20} className="text-slate-400" /> Статусы броней
@@ -194,19 +197,9 @@ export default function AdminPanel() {
                     {stats?.statusData && stats.statusData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                          <Pie 
-                            data={stats.statusData} 
-                            cx="50%" cy="50%" 
-                            innerRadius={60} outerRadius={100} 
-                            paddingAngle={5} 
-                            dataKey="value"
-                            isAnimationActive={false} // ФИКС ЧЕРНОГО ГРАФИКА
-                          >
+                          <Pie data={stats.statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value" isAnimationActive={false}>
                             {stats.statusData.map((_: any, index: number) => (
-                              <Cell 
-                                key={`cell-${index}`} 
-                                style={{ fill: COLORS[index % COLORS.length] }} // ФИКС ЦВЕТА
-                              />
+                              <Cell key={`cell-${index}`} style={{ fill: COLORS[index % COLORS.length] }} />
                             ))}
                           </Pie>
                           <RechartsTooltip />
@@ -214,14 +207,11 @@ export default function AdminPanel() {
                         </PieChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium">
-                        Нет данных для отображения
-                      </div>
+                      <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium">Нет данных</div>
                     )}
                   </div>
                 </div>
 
-                {/* Столбчатая диаграмма популярности */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                   <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
                     <TrendingUp size={20} className="text-slate-400" /> Топ-5 популярных мест
@@ -234,20 +224,11 @@ export default function AdminPanel() {
                           <XAxis type="number" allowDecimals={false} />
                           <YAxis dataKey="name" type="category" width={80} tick={{fontSize: 12}} />
                           <RechartsTooltip cursor={{fill: '#f1f5f9'}} />
-                          <Bar 
-                            dataKey="count" 
-                            name="Количество броней" 
-                            barSize={24} 
-                            radius={[0, 4, 4, 0]}
-                            isAnimationActive={false} // ФИКС ЧЕРНОГО ГРАФИКА
-                            style={{ fill: '#3b82f6' }} // ФИКС ЦВЕТА
-                          />
+                          <Bar dataKey="count" name="Количество броней" barSize={24} radius={[0, 4, 4, 0]} isAnimationActive={false} style={{ fill: '#3b82f6' }} />
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium">
-                        Нет данных для отображения
-                      </div>
+                      <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium">Нет данных</div>
                     )}
                   </div>
                 </div>
@@ -260,7 +241,6 @@ export default function AdminPanel() {
       {/* ── ВКЛАДКА 2: БРОНИРОВАНИЯ ── */}
       {activeTab === 'bookings' && (
          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          {/* Поиск */}
           <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center gap-3">
             <Search size={20} className="text-slate-400" />
             <input 
@@ -273,10 +253,7 @@ export default function AdminPanel() {
           </div>
 
          {isLoadingBookings ? (
-            <div className="flex flex-col items-center justify-center py-32">
-              <Spinner size="lg" />
-              <p className="mt-4 text-slate-500 font-medium">Загрузка броней...</p>
-            </div>
+            <div className="flex flex-col items-center justify-center py-32"><Spinner size="lg" /></div>
          ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
@@ -329,6 +306,7 @@ export default function AdminPanel() {
       {/* ── ВКЛАДКА 3: РЕСУРСЫ ── */}
       {activeTab === 'resources' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Форма добавления */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-fit">
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Plus size={18}/> Добавить ресурс</h2>
             <form onSubmit={handleCreateResource} className="space-y-4">
@@ -363,12 +341,23 @@ export default function AdminPanel() {
             </form>
           </div>
 
+          {/* Список ресурсов */}
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-fit">
+            
+            {/* 👇 Поиск по ресурсам */}
+            <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center gap-3">
+              <Search size={20} className="text-slate-400" />
+              <input 
+                type="text" 
+                placeholder="Поиск по названию или локации..." 
+                value={resourceSearchQuery}
+                onChange={(e) => setResourceSearchQuery(e.target.value)}
+                className="w-full bg-transparent outline-none text-sm text-slate-700 placeholder-slate-400"
+              />
+            </div>
+
             {isLoadingResources ? (
-               <div className="flex flex-col items-center justify-center py-32">
-                 <Spinner size="lg" />
-                 <p className="mt-4 text-slate-500 font-medium">Загрузка ресурсов...</p>
-               </div>
+               <div className="flex flex-col items-center justify-center py-32"><Spinner size="lg" /></div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm whitespace-nowrap">
@@ -376,21 +365,59 @@ export default function AdminPanel() {
                     <tr>
                       <th className="p-4 font-semibold">Название</th>
                       <th className="p-4 font-semibold">Тип</th>
-                      <th className="p-4 font-semibold">Локация</th>
+                      <th className="p-4 font-semibold">Статус</th>
                       <th className="p-4 font-semibold text-right">Действия</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {resources?.map((r: any) => (
+                    {resources
+                      ?.filter((r: any) => 
+                        r.name.toLowerCase().includes(resourceSearchQuery.toLowerCase()) || 
+                        r.location?.toLowerCase().includes(resourceSearchQuery.toLowerCase())
+                      )
+                      .map((r: any) => (
                       <tr key={r.id} className="hover:bg-slate-50/50">
                         <td className="p-4 font-bold text-slate-800 flex items-center gap-2">
                           {r.resourceType === 'зал' ? <Users size={16} className="text-indigo-500"/> : <Monitor size={16} className="text-emerald-500"/>}
                           {r.name}
+                          <span className="text-[10px] text-slate-400 font-normal ml-2">{r.location}</span>
                         </td>
                         <td className="p-4 text-slate-600 capitalize">{r.resourceType}</td>
-                        <td className="p-4 text-slate-600">{r.location}</td>
-                        <td className="p-4 text-right">
-                          <button onClick={() => { if(window.confirm('Удалить?')) deleteResourceMutation.mutate(r.id) }} className="text-red-400 hover:text-red-600 p-2">
+                        
+                        {/* 👇 Статус */}
+                        <td className="p-4">
+                          <span className={`px-2 py-1 rounded text-xs font-bold ${
+                            r.status === 'свободен' ? 'bg-emerald-100 text-emerald-700' : 
+                            r.status === 'занят' ? 'bg-amber-100 text-amber-700' : 
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {r.status}
+                          </span>
+                        </td>
+
+                        {/* 👇 Действия */}
+                        <td className="p-4 text-right flex items-center justify-end gap-2">
+                          {/* Кнопка ремонта / разрешения */}
+                          {r.status === 'ремонт' ? (
+                            <button 
+                              onClick={() => updateResourceStatusMutation.mutate({ id: r.id, status: 'свободен' })}
+                              className="flex items-center gap-1 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                              title="Разрешить бронирование"
+                            >
+                              <Check size={14} /> Разрешить
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => updateResourceStatusMutation.mutate({ id: r.id, status: 'ремонт' })}
+                              className="flex items-center gap-1 text-amber-600 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                              title="Временно запретить бронь (ремонт)"
+                            >
+                              <Wrench size={14} /> В ремонт
+                            </button>
+                          )}
+
+                          {/* Кнопка удаления */}
+                          <button onClick={() => { if(window.confirm('Удалить ресурс?')) deleteResourceMutation.mutate(r.id) }} className="text-red-400 hover:text-red-600 p-2 transition-colors ml-2">
                             <Trash2 size={18} />
                           </button>
                         </td>
@@ -408,10 +435,7 @@ export default function AdminPanel() {
       {activeTab === 'users' && (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           {isLoadingUsers ? (
-             <div className="flex flex-col items-center justify-center py-32">
-               <Spinner size="lg" />
-               <p className="mt-4 text-slate-500 font-medium">Загрузка пользователей...</p>
-             </div>
+             <div className="flex flex-col items-center justify-center py-32"><Spinner size="lg" /></div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm whitespace-nowrap">
@@ -444,10 +468,7 @@ export default function AdminPanel() {
                         </td>
                         <td className="p-4 text-slate-600">{u.tariff?.name}</td>
                         <td className="p-4 text-right">
-                          <button 
-                            onClick={() => { if(window.confirm('Удалить пользователя?')) deleteUserMutation.mutate(u.id) }} 
-                            className="text-red-400 hover:text-red-600 p-2 transition-colors"
-                          >
+                          <button onClick={() => { if(window.confirm('Удалить пользователя?')) deleteUserMutation.mutate(u.id) }} className="text-red-400 hover:text-red-600 p-2 transition-colors">
                             <Trash2 size={18} />
                           </button>
                         </td>
@@ -466,9 +487,7 @@ export default function AdminPanel() {
         <div className="max-w-xl mx-auto">
           <div className="bg-white p-4 md:p-8 rounded-3xl shadow-sm border border-slate-200 text-center">
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Сканирование билетов</h2>
-            <p className="text-sm text-slate-500 mb-8">
-              Наведите камеру на QR-код с телефона клиента, чтобы подтвердить его вход.
-            </p>
+            <p className="text-sm text-slate-500 mb-8">Наведите камеру на QR-код с телефона клиента, чтобы подтвердить его вход.</p>
             
             <div className="relative w-full aspect-square max-w-sm mx-auto overflow-hidden rounded-2xl border-4 border-slate-800 shadow-xl bg-black mb-8">
               <Scanner 
@@ -489,7 +508,6 @@ export default function AdminPanel() {
             </div>
           </div>
           
-          {/* МОДАЛКА УСПЕШНОГО СКАНИРОВАНИЯ */}
           {scannedBooking && (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
@@ -515,8 +533,6 @@ export default function AdminPanel() {
                       {scannedBooking.resource?.capacity ? `${scannedBooking.resource.capacity} чел.` : '1 чел.'}
                     </span>
                   </div>
-                  
-                  {/* Защита от ошибки рендера даты */}
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 text-sm">Время</span>
                     <span className="font-bold text-slate-900">
@@ -527,10 +543,7 @@ export default function AdminPanel() {
                   </div>
                 </div>
 
-                <button 
-                  onClick={() => setScannedBooking(null)}
-                  className="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-colors"
-                >
+                <button onClick={() => setScannedBooking(null)} className="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-colors">
                   Пропустить группу
                 </button>
               </div>
