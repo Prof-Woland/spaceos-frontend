@@ -6,6 +6,7 @@ import { CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import PaymentModal from '../components/PaymentModal';
+import Spinner from '../components/Spinner';
 
 export default function Pricing() {
   const { user, updateUser } = useAuth();
@@ -36,7 +37,12 @@ export default function Pricing() {
     setSelectedTariff(tariff);
   };
 
-  if (isLoading) return <div className="p-8 text-center text-xl font-medium text-slate-500 dark:text-slate-400">Загрузка тарифов...</div>;
+  if (isLoading) return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh]">
+      <Spinner size="lg" />
+      <p className="mt-4 text-slate-500 dark:text-slate-400 font-medium">Загрузка тарифов...</p>
+    </div>
+  );
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-16">
