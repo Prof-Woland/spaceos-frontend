@@ -6,7 +6,7 @@ import { ru } from 'date-fns/locale';
 import { 
   Plus, Trash2, ShieldAlert, Monitor, Users, TrendingUp, 
   DollarSign, CalendarCheck, QrCode, CheckCircle, Search, Wrench, Check, 
-  Clock, Crown, FileSpreadsheet, FileText 
+  Clock, Crown, FileSpreadsheet, FileText, Briefcase 
 } from 'lucide-react';
 import { 
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, Legend, 
@@ -17,14 +17,14 @@ import { Scanner } from '@yudiel/react-qr-scanner';
 import toast from 'react-hot-toast';
 import Spinner from '../components/Spinner';
 import AdminTimeline from '@/components/AdminTimeline';
-import html2pdf from 'html2pdf.js'; // 👈 Импорт html2pdf
+import html2pdf from 'html2pdf.js';
 
 const COLORS = ['#10b981', '#ef4444', '#64748b']; 
 
 export default function AdminPanel() {
   const queryClient = useQueryClient();
   
-  const [activeTab, setActiveTab] = useState<'stats' | 'timeline' | 'bookings' | 'resources' | 'users' | 'scanner'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'timeline' | 'bookings' | 'resources' | 'users' | 'services' | 'scanner'>('stats');
   
   const [searchQuery, setSearchQuery] = useState('');
   const [resourceSearchQuery, setResourceSearchQuery] = useState('');
@@ -33,9 +33,13 @@ export default function AdminPanel() {
     name: '', resourceType: 'место', location: 'Зона А, 1 этаж', capacity: '', equipment: ''
   });
 
+  // 👇 Стейт для новой услуги
+  const [newService, setNewService] = useState({
+    name: '', price: '', description: ''
+  });
+
   const [scannedBooking, setScannedBooking] = useState<any>(null);
   
-  // 👇 Ref для скрытого шаблона PDF
   const pdfRef = useRef<HTMLDivElement>(null);
 
   // ─── ЗАПРОСЫ ДАННЫХ ───
@@ -57,6 +61,12 @@ export default function AdminPanel() {
   const { data: users, isLoading: isLoadingUsers } = useQuery({
     queryKey: ['admin-users'],
     queryFn: () => api.get('/users').then(res => res.data),
+  });
+
+  // 👇 Запрос услуг
+  const { data: services, isLoading: isLoadingServices } = useQuery({
+    queryKey: ['services'],
+    queryFn: () => api.get('/services').then(res => res.data),
   });
 
   // ─── МУТАЦИИ ───
@@ -85,6 +95,24 @@ export default function AdminPanel() {
       const msg = variables.status === 'ремонт' ? 'Ресурс отправлен в ремонт' : 'Ресурс доступен для брони';
       toast.success(msg);
     },
+  });
+
+  // 👇 Мутации для услуг
+  const createServiceMutation = useMutation({
+    mutationFn: (data: any) => api.post('/services', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      setNewService({ name: '', price: '', description: '' });
+      toast.success('Услуга успешно добавлена!');
+    },
+  });
+
+  const deleteServiceMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/services/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      toast.success('Услуга удалена');
+    }
   });
 
   const checkInMutation = useMutation({
@@ -128,6 +156,15 @@ export default function AdminPanel() {
     });
   };
 
+  const handleCreateService = (e: React.FormEvent) => {
+    e.preventDefault();
+    createServiceMutation.mutate({
+      name: newService.name,
+      price: Number(newService.price),
+      description: newService.description || undefined,
+    });
+  };
+
   const downloadCSV = () => {
     if (!bookings || bookings.length === 0) return toast.error('Нет данных для экспорта');
 
@@ -161,7 +198,6 @@ export default function AdminPanel() {
     document.body.removeChild(link);
   };
 
-  // Фильтрация
   const filteredBookings = bookings?.filter((b: any) => 
     b.bookingCode?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     b.user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -173,7 +209,6 @@ export default function AdminPanel() {
     r.location?.toLowerCase().includes(resourceSearchQuery.toLowerCase())
   ) || [];
 
-  // 👇 Экспорт в PDF
   const downloadPDF = () => {
     if (!filteredBookings || filteredBookings.length === 0) {
       return toast.error('Нет данных для экспорта');
@@ -183,12 +218,12 @@ export default function AdminPanel() {
     if (!element) return;
 
     const opt = {
-      margin:       [10, 10, 10, 10], // Отступы: верх, лево, низ, право
+      margin:       [10, 10, 10, 10],
       filename:     `SpaceOS_Отчет_${format(new Date(), 'dd.MM.yyyy')}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
       html2canvas:  { scale: 2, useCORS: true, scrollY: 0, scrollX: 0 },
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // 👈 Запрещает рвать строки пополам
+      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     // @ts-ignore
@@ -197,7 +232,6 @@ export default function AdminPanel() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Заголовок */}
       <div className="flex items-center gap-3 mb-8">
         <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center shrink-0">
           <ShieldAlert size={28} />
@@ -208,12 +242,15 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      {/* Вкладки */}
       <div className="flex space-x-2 border-b border-slate-200 dark:border-slate-700 mb-6 overflow-x-auto custom-scrollbar pb-1">
         <button onClick={() => setActiveTab('stats')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'stats' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}>Аналитика</button>
         <button onClick={() => setActiveTab('timeline')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'timeline' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}>Гант</button>
         <button onClick={() => setActiveTab('bookings')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'bookings' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}>Брони</button>
         <button onClick={() => setActiveTab('resources')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'resources' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}>Ресурсы</button>
+        {/* 👇 Новая вкладка */}
+        <button onClick={() => setActiveTab('services')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap flex items-center gap-2 ${activeTab === 'services' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}>
+          <Briefcase size={18} /> Услуги
+        </button>
         <button onClick={() => setActiveTab('users')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap flex items-center gap-2 ${activeTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}><Users size={18} /> Пользователи</button>
         <button onClick={() => setActiveTab('scanner')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap flex items-center gap-2 ${activeTab === 'scanner' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}><QrCode size={18} /> Сканер</button>
       </div>
@@ -417,7 +454,6 @@ export default function AdminPanel() {
               </table>
             </div>
 
-            {/* Мобильные карточки (Брони) */}
             <div className="md:hidden flex flex-col divide-y divide-slate-100 dark:divide-slate-700">
               {filteredBookings.map((b: any) => (
                 <div key={b.id} className="p-4 flex flex-col gap-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
@@ -588,7 +624,83 @@ export default function AdminPanel() {
         </div>
       )}
 
-      {/* ── ВКЛАДКА 5: ПОЛЬЗОВАТЕЛИ ── */}
+      {/* ── ВКЛАДКА 5: УСЛУГИ ── */}
+      {activeTab === 'services' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 h-fit">
+            <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2"><Plus size={18}/> Добавить услугу</h2>
+            <form onSubmit={handleCreateService} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Название</label>
+                <input required type="text" value={newService.name} onChange={e => setNewService({...newService, name: e.target.value})} className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none focus:border-blue-500 bg-transparent text-slate-900 dark:text-white" placeholder="Кофе-брейк" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Цена (BYN)</label>
+                <input required type="number" step="0.01" value={newService.price} onChange={e => setNewService({...newService, price: e.target.value})} className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none focus:border-blue-500 bg-transparent text-slate-900 dark:text-white" placeholder="5.00" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Описание (необязательно)</label>
+                <textarea value={newService.description} onChange={e => setNewService({...newService, description: e.target.value})} className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none focus:border-blue-500 bg-transparent text-slate-900 dark:text-white resize-none" rows={3} placeholder="Напитки и закуски..." />
+              </div>
+              <button type="submit" disabled={createServiceMutation.isPending} className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex justify-center items-center h-10">
+                {createServiceMutation.isPending ? <Spinner size="sm" color="white" /> : 'Создать'}
+              </button>
+            </form>
+          </div>
+
+          <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden h-fit">
+            {isLoadingServices ? (
+               <div className="flex flex-col items-center justify-center py-32"><Spinner size="lg" /></div>
+            ) : (
+              <>
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left text-sm whitespace-nowrap">
+                    <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                      <tr>
+                        <th className="p-4 font-semibold">Название</th>
+                        <th className="p-4 font-semibold">Описание</th>
+                        <th className="p-4 font-semibold">Цена</th>
+                        <th className="p-4 font-semibold text-right">Действия</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                      {services?.map((s: any) => (
+                        <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50">
+                          <td className="p-4 font-bold text-slate-800 dark:text-white">{s.name}</td>
+                          <td className="p-4 text-slate-500 dark:text-slate-400 text-xs max-w-[200px] truncate">{s.description || '—'}</td>
+                          <td className="p-4 font-bold text-blue-600 dark:text-blue-400">{s.price} BYN</td>
+                          <td className="p-4 text-right">
+                            <button onClick={() => { if(window.confirm('Удалить услугу?')) deleteServiceMutation.mutate(s.id) }} className="text-red-400 hover:text-red-600 p-2 transition-colors">
+                              <Trash2 size={18} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="md:hidden flex flex-col divide-y divide-slate-100 dark:divide-slate-700">
+                  {services?.map((s: any) => (
+                    <div key={s.id} className="p-4 flex justify-between items-center gap-4">
+                      <div>
+                        <div className="font-bold text-slate-800 dark:text-white">{s.name}</div>
+                        {s.description && <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{s.description}</div>}
+                        <div className="font-bold text-blue-600 dark:text-blue-400 mt-1">{s.price} BYN</div>
+                      </div>
+                      <button onClick={() => { if(window.confirm('Удалить услугу?')) deleteServiceMutation.mutate(s.id) }} className="text-red-400 hover:text-red-600 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg transition-colors">
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── ВКЛАДКА 6: ПОЛЬЗОВАТЕЛИ ── */}
       {activeTab === 'users' && (
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
           {isLoadingUsers ? (
@@ -671,7 +783,7 @@ export default function AdminPanel() {
         </div>
       )}
 
-      {/* ── ВКЛАДКА 6: СКАНЕР ── */}
+      {/* ── ВКЛАДКА 7: СКАНЕР ── */}
       {activeTab === 'scanner' && (
         <div className="max-w-xl mx-auto">
           <div className="bg-white dark:bg-slate-800 p-4 md:p-8 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 text-center">
@@ -750,7 +862,7 @@ export default function AdminPanel() {
         </div>
       )}
 
-             {/* 👇 СКРЫТЫЙ ШАБЛОН ДЛЯ PDF */}
+      {/* 👇 СКРЫТЫЙ ШАБЛОН ДЛЯ PDF */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
         <div ref={pdfRef} style={{ width: '740px', padding: '20px', backgroundColor: 'white', color: 'black', fontFamily: 'Arial, sans-serif' }}>
           
@@ -761,7 +873,6 @@ export default function AdminPanel() {
             </p>
           </div>
 
-          {/* 👇 Убрали tableLayout: 'fixed' и задали whiteSpace для колонок */}
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8fafc' }}>
