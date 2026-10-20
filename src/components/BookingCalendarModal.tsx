@@ -116,16 +116,13 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-0 md:p-4">
-      {/* 👇 На мобильных max-h-[100dvh] (весь экран), на ПК max-h-[90vh] */}
-      <div className="bg-white md:rounded-2xl shadow-2xl w-full max-w-5xl h-[100dvh] md:h-auto md:max-h-[90vh] overflow-hidden flex flex-col md:flex-row">
+      <div className="bg-white dark:bg-slate-800 md:rounded-2xl shadow-2xl w-full max-w-5xl h-[100dvh] md:h-auto md:max-h-[90vh] overflow-hidden flex flex-col md:flex-row">
         
         {/* ЛЕВАЯ ЧАСТЬ: КАЛЕНДАРЬ */}
-        {/* На мобильных h-auto, на ПК фиксированная высота */}
-        <div className="bg-gray-50 p-4 md:p-8 w-full md:w-1/3 border-b md:border-b-0 md:border-r flex flex-col md:h-[700px]">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2 text-lg">
+        <div className="bg-gray-50 dark:bg-slate-900 p-4 md:p-8 w-full md:w-1/3 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 flex flex-col md:h-[700px]">
+          <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-lg">
             <CalendarIcon size={20} /> Дата
           </h3>
-          {/* 👇 На мобильных даты скроллятся горизонтально (flex-row), на ПК вертикально */}
           <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto pb-2 md:pb-0 pr-0 md:pr-2 custom-scrollbar">
             {dates.map((date) => {
               const isSelected = format(date, 'yyyy-MM-dd') === dateStr;
@@ -134,7 +131,9 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
                   key={date.toISOString()}
                   onClick={() => { setSelectedDate(date); setSelectedTime(null); }}
                   className={`shrink-0 w-32 md:w-full text-left px-4 py-3 rounded-xl transition-all ${
-                    isSelected ? 'bg-blue-600 text-white shadow-md' : 'bg-white hover:bg-gray-100 text-gray-700 border border-slate-200 md:border-none'
+                    isSelected 
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 md:border-none'
                   }`}
                 >
                   <div className="text-xs md:text-sm font-medium capitalize">{format(date, 'EEEE', { locale: ru })}</div>
@@ -146,32 +145,31 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
         </div>
 
         {/* ПРАВАЯ ЧАСТЬ: ВРЕМЯ И УСЛУГИ */}
-        <div className="p-4 md:p-8 w-full md:w-2/3 flex flex-col flex-grow overflow-y-auto md:h-[700px]">
+        <div className="p-4 md:p-8 w-full md:w-2/3 flex flex-col flex-grow overflow-y-auto custom-scrollbar md:h-[700px]">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h3 className="text-xl md:text-2xl font-bold text-gray-900">{resourceName}</h3>
-              <p className="text-sm md:text-base text-gray-500">Выберите время, длительность и доп. услуги</p>
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{resourceName}</h3>
+              <p className="text-sm md:text-base text-gray-500 dark:text-slate-400">Выберите время, длительность и доп. услуги</p>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-700 bg-gray-100 p-2 rounded-full transition-colors">
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 bg-gray-100 dark:bg-slate-700 p-2 rounded-full transition-colors">
               <X size={20} />
             </button>
           </div>
 
-          {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4">{error}</div>}
+          {error && <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm mb-4">{error}</div>}
 
           <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <h4 className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3 flex items-center gap-2">
               <Clock size={16} /> Доступное время (до 21:00)
             </h4>
             <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-4 gap-2">
-                            {timeSlots.map(time => {
+              {timeSlots.map(time => {
                 const booked = isSlotBooked(time);
                 const isSelected = selectedTime === time;
                 const hour = parseInt(time.split(':')[0]);
                 const isPeak = hour >= 17;
                 const isDiscount = hour >= 8 && hour < 11;
                 
-                // 👇 Текст для подсказки
                 const tooltipText = isPeak 
                   ? 'Пиковое время (17:00-21:00). Наценка +20% из-за высокого спроса.' 
                   : (isDiscount ? 'Утренняя скидка (08:00-11:00). Цена -10%.' : 'Стандартный тариф');
@@ -180,12 +178,14 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
                   <button
                     key={time}
                     disabled={booked}
-                    title={tooltipText} // 👈 Добавили подсказку
+                    title={tooltipText}
                     onClick={() => { setSelectedTime(time); setDuration(1); }}
                     className={`relative flex flex-col items-center justify-center py-2 rounded-lg text-xs md:text-sm font-bold border-2 transition-all ${
-                      booked ? 'bg-gray-100 border-gray-100 text-gray-400 cursor-not-allowed line-through' :
-                      isSelected ? 'bg-green-500 border-green-500 text-white shadow-md' :
-                      'bg-white border-gray-200 hover:border-gray-300 text-gray-700'
+                      booked 
+                        ? 'bg-gray-100 dark:bg-slate-800 border-gray-100 dark:border-slate-800 text-gray-400 dark:text-slate-600 cursor-not-allowed line-through' :
+                      isSelected 
+                        ? 'bg-green-500 border-green-500 text-white shadow-md' :
+                        'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 text-gray-700 dark:text-slate-300'
                     }`}
                   >
                     <span>{time}</span>
@@ -203,7 +203,7 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
           {selectedTime && (
             <>
               <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Длительность</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">Длительность</label>
                 <div className="flex flex-wrap gap-2">
                   {DURATION_OPTIONS.map(h => {
                     const available = isRangeAvailable(selectedTime, h);
@@ -215,10 +215,10 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
                         onClick={() => setDuration(h)}
                         className={`flex-1 min-w-[3rem] py-2 rounded-lg text-sm font-bold border transition-all ${
                           !available 
-                            ? 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed line-through' 
+                            ? 'bg-gray-50 dark:bg-slate-800/50 border-gray-100 dark:border-slate-700 text-gray-400 dark:text-slate-600 cursor-not-allowed line-through' 
                             : duration === h 
-                              ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm' 
-                              : 'bg-white border-gray-200 hover:border-gray-300 text-gray-700'
+                              ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-blue-700 dark:text-blue-400 shadow-sm' 
+                              : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 text-gray-700 dark:text-slate-300'
                         }`}
                       >
                         {h} ч.
@@ -229,32 +229,41 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
               </div>
 
               <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2 flex items-center gap-2">
                   <Coffee size={16} /> Дополнительные услуги
                 </label>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-2 md:p-3 space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl p-2 md:p-3 space-y-2 max-h-56 overflow-y-auto custom-scrollbar">
                   {services?.map((service: any) => {
                     const qty = selectedServices[service.id] || 0;
                     return (
-                      <div key={service.id} className="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-100 shadow-sm">
-                        <div>
-                          <div className="font-semibold text-xs md:text-sm text-slate-800">{service.name}</div>
-                          <div className="text-[10px] md:text-xs text-slate-500">{service.price} BYN</div>
+                      <div key={service.id} className="flex items-start justify-between bg-white dark:bg-slate-800 p-2 md:p-3 rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm gap-3">
+                        <div className="flex flex-col">
+                          <div className="font-semibold text-xs md:text-sm text-slate-800 dark:text-slate-200">{service.name}</div>
+                          
+                          {/* 👇 Выводим описание, если оно есть */}
+                          {service.description && (
+                            <div className="text-[10px] text-slate-400 dark:text-slate-500 leading-tight mt-0.5 max-w-[200px]">
+                              {service.description}
+                            </div>
+                          )}
+                          
+                          <div className="text-[10px] md:text-xs font-bold text-blue-600 dark:text-blue-400 mt-1">{service.price} BYN</div>
                         </div>
-                        <div className="flex items-center gap-2 md:gap-3">
+                        
+                        <div className="flex items-center gap-2 md:gap-3 shrink-0 pt-1">
                           <button
                             type="button"
                             onClick={() => handleServiceChange(service.id, -1)}
                             disabled={qty === 0}
-                            className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-50 transition-colors"
+                            className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-50 transition-colors"
                           >
                             <Minus size={14} />
                           </button>
-                          <span className="font-bold text-sm w-4 text-center">{qty}</span>
+                          <span className="font-bold text-sm w-4 text-center dark:text-white">{qty}</span>
                           <button
                             type="button"
                             onClick={() => handleServiceChange(service.id, 1)}
-                            className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+                            className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
                           >
                             <Plus size={14} />
                           </button>
@@ -267,15 +276,15 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
             </>
           )}
 
-                    {selectedTime && (
-            <div className="mt-auto pt-4 border-t border-gray-100 bg-white sticky bottom-0">
+          {selectedTime && (
+            <div className="mt-auto pt-4 border-t border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 sticky bottom-0 z-10">
               
               {/* 👇 ИНФО-БЛОК О ДИНАМИЧЕСКОЙ ЦЕНЕ */}
               {(() => {
                 const hour = parseInt(selectedTime.split(':')[0]);
                 if (hour >= 17) {
                   return (
-                    <div className="bg-amber-50 text-amber-700 p-2.5 rounded-lg text-xs font-medium mb-3 flex items-start gap-2 border border-amber-100">
+                    <div className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 p-2.5 rounded-lg text-xs font-medium mb-3 flex items-start gap-2 border border-amber-100 dark:border-amber-800">
                       <span className="text-base leading-none">🔥</span>
                       <p>Выбрано пиковое время (17:00–21:00). К стоимости применяется наценка <b>+20%</b>.</p>
                     </div>
@@ -283,7 +292,7 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
                 }
                 if (hour >= 8 && hour < 11) {
                   return (
-                    <div className="bg-emerald-50 text-emerald-700 p-2.5 rounded-lg text-xs font-medium mb-3 flex items-start gap-2 border border-emerald-100">
+                    <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 p-2.5 rounded-lg text-xs font-medium mb-3 flex items-start gap-2 border border-emerald-100 dark:border-emerald-800">
                       <span className="text-base leading-none">🌅</span>
                       <p>Действует утренняя скидка (08:00–11:00). Стоимость снижена на <b>10%</b>.</p>
                     </div>
@@ -294,9 +303,9 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
 
               {/* Стоимость доп услуг */}
               {totalServicesCost > 0 && (
-                <div className="flex justify-between items-center mb-3 text-sm text-slate-600">
+                <div className="flex justify-between items-center mb-3 text-sm text-slate-600 dark:text-slate-400">
                   <span>Стоимость доп. услуг:</span>
-                  <span className="font-bold">{totalServicesCost} BYN</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{totalServicesCost} BYN</span>
                 </div>
               )}
               
