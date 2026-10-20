@@ -76,6 +76,21 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
     });
   };
 
+  // 👇 Обработка ручного ввода количества
+  const handleServiceInputChange = (id: number, value: string) => {
+    const parsedValue = parseInt(value, 10);
+    const next = isNaN(parsedValue) ? 0 : Math.max(0, parsedValue);
+    
+    if (next === 0) {
+      setSelectedServices(prev => {
+        const { [id]: _, ...rest } = prev;
+        return rest;
+      });
+    } else {
+      setSelectedServices(prev => ({ ...prev, [id]: next }));
+    }
+  };
+
   const totalServicesCost = Object.entries(selectedServices).reduce((acc, [id, qty]) => {
     const service = services?.find((s: any) => s.id === Number(id));
     return acc + (service ? Number(service.price) * qty : 0);
@@ -240,7 +255,6 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
                         <div className="flex flex-col">
                           <div className="font-semibold text-xs md:text-sm text-slate-800 dark:text-slate-200">{service.name}</div>
                           
-                          {/* 👇 Выводим описание, если оно есть */}
                           {service.description && (
                             <div className="text-[10px] text-slate-400 dark:text-slate-500 leading-tight mt-0.5 max-w-[200px]">
                               {service.description}
@@ -250,7 +264,7 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
                           <div className="text-[10px] md:text-xs font-bold text-blue-600 dark:text-blue-400 mt-1">{service.price} BYN</div>
                         </div>
                         
-                        <div className="flex items-center gap-2 md:gap-3 shrink-0 pt-1">
+                        <div className="flex items-center gap-1 md:gap-2 shrink-0 pt-1">
                           <button
                             type="button"
                             onClick={() => handleServiceChange(service.id, -1)}
@@ -259,7 +273,17 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
                           >
                             <Minus size={14} />
                           </button>
-                          <span className="font-bold text-sm w-4 text-center dark:text-white">{qty}</span>
+                          
+                          {/* 👇 ИНПУТ ДЛЯ ВВОДА КОЛИЧЕСТВА */}
+                          <input
+                            type="number"
+                            min="0"
+                            value={qty === 0 ? '' : qty}
+                            onChange={(e) => handleServiceInputChange(service.id, e.target.value)}
+                            placeholder="0"
+                            className="w-12 h-7 md:w-14 md:h-8 text-center font-bold text-sm bg-transparent border border-slate-200 dark:border-slate-600 rounded-md outline-none focus:border-blue-500 dark:text-white appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          />
+                          
                           <button
                             type="button"
                             onClick={() => handleServiceChange(service.id, 1)}
@@ -279,7 +303,7 @@ export default function BookingCalendarModal({ resourceId, resourceName, onClose
           {selectedTime && (
             <div className="mt-auto pt-4 border-t border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 sticky bottom-0 z-10">
               
-              {/* 👇 ИНФО-БЛОК О ДИНАМИЧЕСКОЙ ЦЕНЕ */}
+              {/* ИНФО-БЛОК О ДИНАМИЧЕСКОЙ ЦЕНЕ */}
               {(() => {
                 const hour = parseInt(selectedTime.split(':')[0]);
                 if (hour >= 17) {
