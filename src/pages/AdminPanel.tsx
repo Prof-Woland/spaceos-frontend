@@ -21,11 +21,18 @@ import html2pdf from 'html2pdf.js';
 
 const COLORS = ['#10b981', '#ef4444', '#64748b']; 
 
-// 👇 Твой SVG-логотип, адаптированный под размер шрифта и цвет
-const RubleIcon = ({ className = "" }: { className?: string }) => (
+// 👇 Жестко задаем размеры через inline-стили, чтобы Tailwind не тупил
+const RubleIcon = () => (
   <svg 
     viewBox="0 0 76 93" 
-    className={`inline-block w-[0.8em] h-[1em] mb-[0.1em] ${className}`} 
+    style={{ 
+      width: '0.55em', 
+      height: '0.7em', 
+      display: 'inline-block', 
+      verticalAlign: 'middle', 
+      marginBottom: '2px',
+      marginLeft: '2px'
+    }} 
     fill="currentColor"
     stroke="currentColor"
     strokeWidth="0.5"
@@ -277,7 +284,7 @@ export default function AdminPanel() {
                   <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><DollarSign size={32} /></div>
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Выручка</p>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-1">
+                    <p className="text-3xl font-black text-slate-900 dark:text-white flex items-center">
                       {Number(stats?.totalRevenue || 0).toLocaleString('ru-RU', { minimumFractionDigits: 2 })} <RubleIcon />
                     </p>
                   </div>
@@ -293,7 +300,7 @@ export default function AdminPanel() {
                   <div className="w-16 h-16 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0"><TrendingUp size={32} /></div>
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Средний чек</p>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-1">
+                    <p className="text-3xl font-black text-slate-900 dark:text-white flex items-center">
                       {Number(stats?.averageCheck || 0).toFixed(2)} <RubleIcon />
                     </p>
                   </div>
@@ -309,7 +316,7 @@ export default function AdminPanel() {
                       <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
                       <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
                       <RechartsTooltip 
-                        formatter={(value: any) => [<span className="flex items-center gap-1 font-bold">{Number(value).toFixed(2)} <RubleIcon /></span>, 'Выручка']} 
+                        formatter={(value: any) => [<span className="flex items-center font-bold">{Number(value).toFixed(2)} <RubleIcon /></span>, 'Выручка']} 
                         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
                       />
                       <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981' }} activeDot={{ r: 6 }} isAnimationActive={false} />
@@ -373,7 +380,7 @@ export default function AdminPanel() {
                       <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
                       <RechartsTooltip 
                         cursor={{fill: '#f1f5f9'}} 
-                        formatter={(value: any) => [<span className="flex items-center gap-1 font-bold">{value} <RubleIcon /></span>, 'Выручка']} 
+                        formatter={(value: any) => [<span className="flex items-center font-bold">{value} <RubleIcon /></span>, 'Выручка']} 
                       />
                       <Bar dataKey="revenue" name="Выручка" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={40} isAnimationActive={false} />
                     </BarChart>
@@ -393,7 +400,7 @@ export default function AdminPanel() {
                         <p className="text-xs text-slate-500 dark:text-slate-400">{client.count} броней</p>
                       </div>
                       <div className="ml-auto text-right">
-                        <p className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <p className="font-black text-emerald-600 dark:text-emerald-400 flex items-center">
                           {client.totalSpent} <RubleIcon />
                         </p>
                       </div>
@@ -470,7 +477,7 @@ export default function AdminPanel() {
                         }`}>{b.status}</span>
                       </td>
                       <td className="p-4 text-right font-bold text-slate-900 dark:text-white">
-                        <span className="flex items-center justify-end gap-1">
+                        <span className="flex items-center justify-end">
                           {b.cost} <RubleIcon />
                         </span>
                       </td>
@@ -502,7 +509,7 @@ export default function AdminPanel() {
                     <span className="text-slate-600 dark:text-slate-400">
                       {format(new Date(b.startDatetime), 'd MMM, HH:mm', { locale: ru })} — {format(new Date(b.endDatetime), 'HH:mm')}
                     </span>
-                    <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                    <span className="font-bold text-slate-900 dark:text-white flex items-center">
                       {b.cost} <RubleIcon />
                     </span>
                   </div>
@@ -697,7 +704,7 @@ export default function AdminPanel() {
                           <td className="p-4 font-bold text-slate-800 dark:text-white">{s.name}</td>
                           <td className="p-4 text-slate-500 dark:text-slate-400 text-xs max-w-[200px] truncate">{s.description || '—'}</td>
                           <td className="p-4 font-bold text-blue-600 dark:text-blue-400">
-                            <span className="flex items-center gap-1">
+                            <span className="flex items-center">
                               {s.price} <RubleIcon />
                             </span>
                           </td>
@@ -718,7 +725,7 @@ export default function AdminPanel() {
                       <div>
                         <div className="font-bold text-slate-800 dark:text-white">{s.name}</div>
                         {s.description && <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{s.description}</div>}
-                        <div className="font-bold text-blue-600 dark:text-blue-400 mt-1 flex items-center gap-1">
+                        <div className="font-bold text-blue-600 dark:text-blue-400 mt-1 flex items-center">
                           {s.price} <RubleIcon />
                         </div>
                       </div>
@@ -881,7 +888,7 @@ export default function AdminPanel() {
                     <div className="flex items-center justify-center gap-2 font-bold mb-1">
                       <DollarSign size={20} /> Не оплачено!
                     </div>
-                    <p className="text-xs text-center opacity-80 flex items-center justify-center gap-1">
+                    <p className="text-xs text-center opacity-80 flex items-center justify-center">
                       Клиент должен оплатить {scannedBooking.cost} <RubleIcon />
                     </p>
                   </div>
@@ -928,10 +935,10 @@ export default function AdminPanel() {
                   <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>{format(new Date(b.startDatetime), 'dd.MM.yyyy')}</td>
                   <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>{format(new Date(b.startDatetime), 'HH:mm')} - {format(new Date(b.endDatetime), 'HH:mm')}</td>
                   <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                       {b.cost}
-                      {/* 👇 Твой SVG в PDF */}
-                      <svg viewBox="0 0 76 93" style={{ width: '10px', height: '12px', fill: 'black', stroke: 'black', strokeWidth: '0.5px' }}>
+                      {/* 👇 Твой SVG в PDF (теперь крошечный) */}
+                      <svg viewBox="0 0 76 93" style={{ width: '6px', height: '8px', fill: 'black', stroke: 'black', strokeWidth: '0.5px', marginLeft: '2px' }}>
                         <path d="M13.9375 92.5V70.5H0.5V60.5H13.9375V0.5H64.9375V10.5H23.9375V38.5H46.9375C56.2708 38.6667 75.4375 44.2962 75.4375 65.5C75.4375 87 54.9375 92.5 47.9375 92.5H13.9375ZM23.9375 48.5V60.5H46.9375V70.5H23.9375V82.5H47.9375C53.6042 82.3333 64.9375 78.7 64.9375 65.5C64.9375 52.3 52.9375 48.6667 46.9375 48.5H23.9375Z" />
                       </svg>
                     </span>
