@@ -21,10 +21,16 @@ import html2pdf from 'html2pdf.js';
 
 const COLORS = ['#10b981', '#ef4444', '#64748b']; 
 
-// 👇 Компонент SVG-иконки белорусского рубля
-const RubleIcon = ({ className = "w-4 h-4 inline-block" }: { className?: string }) => (
-  <svg viewBox="0 0 16 20" className={className} fill="currentColor">
-    <text x="0" y="15" fontFamily="Arial, sans-serif" fontWeight="bold" fontSize="16">Br</text>
+// 👇 Правильный SVG-логотип белорусского рубля (в размер шрифта)
+const RubleIcon = ({ className = "" }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    className={`inline-block w-[1em] h-[1em] mb-[0.1em] ${className}`} 
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path fillRule="evenodd" clipRule="evenodd" d="M6 2H15C19.4183 2 23 5.58172 23 10C23 14.4183 19.4183 18 15 18H10V22H6V2ZM10 6V14H15C17.2091 14 19 12.2091 19 10C19 7.79086 17.2091 6 15 6H10Z" />
+    <path d="M2 9H14V13H2V9Z" />
   </svg>
 );
 
@@ -172,7 +178,7 @@ export default function AdminPanel() {
   const downloadCSV = () => {
     if (!bookings || bookings.length === 0) return toast.error('Нет данных для экспорта');
 
-    const headers = ['Код', 'Клиент', 'Email', 'Ресурс', 'Дата', 'Время', 'Стоимость (BYN)', 'Статус'];
+    const headers = ['Код', 'Клиент', 'Email', 'Ресурс', 'Дата', 'Время', 'Стоимость', 'Статус'];
     
     const csvRows = bookings.map((b: any) => {
       const date = format(new Date(b.startDatetime), 'dd.MM.yyyy');
@@ -271,7 +277,7 @@ export default function AdminPanel() {
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Выручка</p>
                     <p className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-1">
-                      {Number(stats?.totalRevenue || 0).toLocaleString('ru-RU', { minimumFractionDigits: 2 })} <RubleIcon className="w-6 h-6" />
+                      {Number(stats?.totalRevenue || 0).toLocaleString('ru-RU', { minimumFractionDigits: 2 })} <RubleIcon />
                     </p>
                   </div>
                 </div>
@@ -287,7 +293,7 @@ export default function AdminPanel() {
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Средний чек</p>
                     <p className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-1">
-                      {Number(stats?.averageCheck || 0).toFixed(2)} <RubleIcon className="w-6 h-6" />
+                      {Number(stats?.averageCheck || 0).toFixed(2)} <RubleIcon />
                     </p>
                   </div>
                 </div>
@@ -656,7 +662,7 @@ export default function AdminPanel() {
                 <input required type="text" value={newService.name} onChange={e => setNewService({...newService, name: e.target.value})} className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none focus:border-blue-500 bg-transparent text-slate-900 dark:text-white" placeholder="Кофе-брейк" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Цена (BYN)</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Цена</label>
                 <input required type="number" step="0.01" value={newService.price} onChange={e => setNewService({...newService, price: e.target.value})} className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm outline-none focus:border-blue-500 bg-transparent text-slate-900 dark:text-white" placeholder="5.00" />
               </div>
               <div>
@@ -921,10 +927,11 @@ export default function AdminPanel() {
                   <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>{format(new Date(b.startDatetime), 'dd.MM.yyyy')}</td>
                   <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>{format(new Date(b.startDatetime), 'HH:mm')} - {format(new Date(b.endDatetime), 'HH:mm')}</td>
                   <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-                      {b.cost} 
-                      <svg viewBox="0 0 16 20" style={{ width: '10px', height: '10px', fill: 'black' }}>
-                        <text x="0" y="14" fontFamily="Arial, sans-serif" fontWeight="bold" fontSize="16">Br</text>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      {b.cost}
+                      <svg viewBox="0 0 24 24" style={{ width: '11px', height: '11px', fill: 'black' }}>
+                        <path fillRule="evenodd" clipRule="evenodd" d="M6 2H15C19.4183 2 23 5.58172 23 10C23 14.4183 19.4183 18 15 18H10V22H6V2ZM10 6V14H15C17.2091 14 19 12.2091 19 10C19 7.79086 17.2091 6 15 6H10Z" />
+                        <path d="M2 9H14V13H2V9Z" />
                       </svg>
                     </span>
                   </td>
