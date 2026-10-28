@@ -21,6 +21,13 @@ import html2pdf from 'html2pdf.js';
 
 const COLORS = ['#10b981', '#ef4444', '#64748b']; 
 
+// 👇 Компонент SVG-иконки белорусского рубля
+const RubleIcon = ({ className = "w-4 h-4 inline-block" }: { className?: string }) => (
+  <svg viewBox="0 0 16 20" className={className} fill="currentColor">
+    <text x="0" y="15" fontFamily="Arial, sans-serif" fontWeight="bold" fontSize="16">Br</text>
+  </svg>
+);
+
 export default function AdminPanel() {
   const queryClient = useQueryClient();
   
@@ -33,7 +40,6 @@ export default function AdminPanel() {
     name: '', resourceType: 'место', location: 'Зона А, 1 этаж', capacity: '', equipment: ''
   });
 
-  // 👇 Стейт для новой услуги
   const [newService, setNewService] = useState({
     name: '', price: '', description: ''
   });
@@ -63,7 +69,6 @@ export default function AdminPanel() {
     queryFn: () => api.get('/users').then(res => res.data),
   });
 
-  // 👇 Запрос услуг
   const { data: services, isLoading: isLoadingServices } = useQuery({
     queryKey: ['services'],
     queryFn: () => api.get('/services').then(res => res.data),
@@ -97,7 +102,6 @@ export default function AdminPanel() {
     },
   });
 
-  // 👇 Мутации для услуг
   const createServiceMutation = useMutation({
     mutationFn: (data: any) => api.post('/services', data),
     onSuccess: () => {
@@ -247,7 +251,6 @@ export default function AdminPanel() {
         <button onClick={() => setActiveTab('timeline')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'timeline' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}>Гант</button>
         <button onClick={() => setActiveTab('bookings')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'bookings' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}>Брони</button>
         <button onClick={() => setActiveTab('resources')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap ${activeTab === 'resources' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}>Ресурсы</button>
-        {/* 👇 Новая вкладка */}
         <button onClick={() => setActiveTab('services')} className={`px-4 py-2 font-bold transition-colors border-b-2 whitespace-nowrap flex items-center gap-2 ${activeTab === 'services' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400'}`}>
           <Briefcase size={18} /> Услуги
         </button>
@@ -267,7 +270,9 @@ export default function AdminPanel() {
                   <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><DollarSign size={32} /></div>
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Выручка</p>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white">{Number(stats?.totalRevenue || 0).toLocaleString('ru-RU', { minimumFractionDigits: 2 })} BYN</p>
+                    <p className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-1">
+                      {Number(stats?.totalRevenue || 0).toLocaleString('ru-RU', { minimumFractionDigits: 2 })} <RubleIcon className="w-6 h-6" />
+                    </p>
                   </div>
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-6">
@@ -281,7 +286,9 @@ export default function AdminPanel() {
                   <div className="w-16 h-16 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0"><TrendingUp size={32} /></div>
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Средний чек</p>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white">{Number(stats?.averageCheck || 0).toFixed(2)} BYN</p>
+                    <p className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-1">
+                      {Number(stats?.averageCheck || 0).toFixed(2)} <RubleIcon className="w-6 h-6" />
+                    </p>
                   </div>
                 </div>
               </div>
@@ -294,7 +301,10 @@ export default function AdminPanel() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                       <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
                       <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
-                      <RechartsTooltip formatter={(value: any) => [`${Number(value).toFixed(2)} BYN`, 'Выручка']} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                      <RechartsTooltip 
+                        formatter={(value: any) => [<span className="flex items-center gap-1 font-bold">{Number(value).toFixed(2)} <RubleIcon /></span>, 'Выручка']} 
+                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
+                      />
                       <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981' }} activeDot={{ r: 6 }} isAnimationActive={false} />
                     </LineChart>
                   </ResponsiveContainer>
@@ -354,7 +364,10 @@ export default function AdminPanel() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                       <XAxis dataKey="name" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
                       <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
-                      <RechartsTooltip cursor={{fill: '#f1f5f9'}} formatter={(value: any) => [`${value} BYN`, 'Выручка']} />
+                      <RechartsTooltip 
+                        cursor={{fill: '#f1f5f9'}} 
+                        formatter={(value: any) => [<span className="flex items-center gap-1 font-bold">{value} <RubleIcon /></span>, 'Выручка']} 
+                      />
                       <Bar dataKey="revenue" name="Выручка" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={40} isAnimationActive={false} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -373,7 +386,9 @@ export default function AdminPanel() {
                         <p className="text-xs text-slate-500 dark:text-slate-400">{client.count} броней</p>
                       </div>
                       <div className="ml-auto text-right">
-                        <p className="font-black text-emerald-600 dark:text-emerald-400">{client.totalSpent} BYN</p>
+                        <p className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                          {client.totalSpent} <RubleIcon />
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -447,7 +462,11 @@ export default function AdminPanel() {
                           'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
                         }`}>{b.status}</span>
                       </td>
-                      <td className="p-4 text-right font-bold text-slate-900 dark:text-white">{b.cost} BYN</td>
+                      <td className="p-4 text-right font-bold text-slate-900 dark:text-white">
+                        <span className="flex items-center justify-end gap-1">
+                          {b.cost} <RubleIcon />
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -476,7 +495,9 @@ export default function AdminPanel() {
                     <span className="text-slate-600 dark:text-slate-400">
                       {format(new Date(b.startDatetime), 'd MMM, HH:mm', { locale: ru })} — {format(new Date(b.endDatetime), 'HH:mm')}
                     </span>
-                    <span className="font-bold text-slate-900 dark:text-white">{b.cost} BYN</span>
+                    <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                      {b.cost} <RubleIcon />
+                    </span>
                   </div>
                 </div>
               ))}
@@ -668,7 +689,11 @@ export default function AdminPanel() {
                         <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50">
                           <td className="p-4 font-bold text-slate-800 dark:text-white">{s.name}</td>
                           <td className="p-4 text-slate-500 dark:text-slate-400 text-xs max-w-[200px] truncate">{s.description || '—'}</td>
-                          <td className="p-4 font-bold text-blue-600 dark:text-blue-400">{s.price} BYN</td>
+                          <td className="p-4 font-bold text-blue-600 dark:text-blue-400">
+                            <span className="flex items-center gap-1">
+                              {s.price} <RubleIcon />
+                            </span>
+                          </td>
                           <td className="p-4 text-right">
                             <button onClick={() => { if(window.confirm('Удалить услугу?')) deleteServiceMutation.mutate(s.id) }} className="text-red-400 hover:text-red-600 p-2 transition-colors">
                               <Trash2 size={18} />
@@ -686,7 +711,9 @@ export default function AdminPanel() {
                       <div>
                         <div className="font-bold text-slate-800 dark:text-white">{s.name}</div>
                         {s.description && <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{s.description}</div>}
-                        <div className="font-bold text-blue-600 dark:text-blue-400 mt-1">{s.price} BYN</div>
+                        <div className="font-bold text-blue-600 dark:text-blue-400 mt-1 flex items-center gap-1">
+                          {s.price} <RubleIcon />
+                        </div>
                       </div>
                       <button onClick={() => { if(window.confirm('Удалить услугу?')) deleteServiceMutation.mutate(s.id) }} className="text-red-400 hover:text-red-600 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg transition-colors">
                         <Trash2 size={18} />
@@ -847,8 +874,8 @@ export default function AdminPanel() {
                     <div className="flex items-center justify-center gap-2 font-bold mb-1">
                       <DollarSign size={20} /> Не оплачено!
                     </div>
-                    <p className="text-xs text-center opacity-80">
-                      Клиент должен оплатить {scannedBooking.cost} BYN.
+                    <p className="text-xs text-center opacity-80 flex items-center justify-center gap-1">
+                      Клиент должен оплатить {scannedBooking.cost} <RubleIcon />
                     </p>
                   </div>
                 )}
@@ -893,7 +920,14 @@ export default function AdminPanel() {
                   <td style={{ border: '1px solid #cbd5e1', padding: '8px' }}>{b.resource.name}</td>
                   <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>{format(new Date(b.startDatetime), 'dd.MM.yyyy')}</td>
                   <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>{format(new Date(b.startDatetime), 'HH:mm')} - {format(new Date(b.endDatetime), 'HH:mm')}</td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>{b.cost} BYN</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                      {b.cost} 
+                      <svg viewBox="0 0 16 20" style={{ width: '10px', height: '10px', fill: 'black' }}>
+                        <text x="0" y="14" fontFamily="Arial, sans-serif" fontWeight="bold" fontSize="16">Br</text>
+                      </svg>
+                    </span>
+                  </td>
                   <td style={{ border: '1px solid #cbd5e1', padding: '8px', textTransform: 'capitalize' }}>{b.status}</td>
                 </tr>
               ))}
