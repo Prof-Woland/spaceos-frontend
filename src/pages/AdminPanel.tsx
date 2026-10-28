@@ -21,16 +21,17 @@ import html2pdf from 'html2pdf.js';
 
 const COLORS = ['#10b981', '#ef4444', '#64748b']; 
 
-// 👇 Правильный SVG-логотип белорусского рубля (в размер шрифта)
+// 👇 Твой SVG-логотип, адаптированный под размер шрифта и цвет
 const RubleIcon = ({ className = "" }: { className?: string }) => (
   <svg 
-    viewBox="0 0 24 24" 
-    className={`inline-block w-[1em] h-[1em] mb-[0.1em] ${className}`} 
+    viewBox="0 0 76 93" 
+    className={`inline-block w-[0.8em] h-[1em] mb-[0.1em] ${className}`} 
     fill="currentColor"
+    stroke="currentColor"
+    strokeWidth="0.5"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path fillRule="evenodd" clipRule="evenodd" d="M6 2H15C19.4183 2 23 5.58172 23 10C23 14.4183 19.4183 18 15 18H10V22H6V2ZM10 6V14H15C17.2091 14 19 12.2091 19 10C19 7.79086 17.2091 6 15 6H10Z" />
-    <path d="M2 9H14V13H2V9Z" />
+    <path d="M13.9375 92.5V70.5H0.5V60.5H13.9375V0.5H64.9375V10.5H23.9375V38.5H46.9375C56.2708 38.6667 75.4375 44.2962 75.4375 65.5C75.4375 87 54.9375 92.5 47.9375 92.5H13.9375ZM23.9375 48.5V60.5H46.9375V70.5H23.9375V82.5H47.9375C53.6042 82.3333 64.9375 78.7 64.9375 65.5C64.9375 52.3 52.9375 48.6667 46.9375 48.5H23.9375Z" />
   </svg>
 );
 
@@ -927,11 +928,11 @@ export default function AdminPanel() {
                   <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>{format(new Date(b.startDatetime), 'dd.MM.yyyy')}</td>
                   <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>{format(new Date(b.startDatetime), 'HH:mm')} - {format(new Date(b.endDatetime), 'HH:mm')}</td>
                   <td style={{ border: '1px solid #cbd5e1', padding: '8px', whiteSpace: 'nowrap' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
                       {b.cost}
-                      <svg viewBox="0 0 24 24" style={{ width: '11px', height: '11px', fill: 'black' }}>
-                        <path fillRule="evenodd" clipRule="evenodd" d="M6 2H15C19.4183 2 23 5.58172 23 10C23 14.4183 19.4183 18 15 18H10V22H6V2ZM10 6V14H15C17.2091 14 19 12.2091 19 10C19 7.79086 17.2091 6 15 6H10Z" />
-                        <path d="M2 9H14V13H2V9Z" />
+                      {/* 👇 Твой SVG в PDF */}
+                      <svg viewBox="0 0 76 93" style={{ width: '10px', height: '12px', fill: 'black', stroke: 'black', strokeWidth: '0.5px' }}>
+                        <path d="M13.9375 92.5V70.5H0.5V60.5H13.9375V0.5H64.9375V10.5H23.9375V38.5H46.9375C56.2708 38.6667 75.4375 44.2962 75.4375 65.5C75.4375 87 54.9375 92.5 47.9375 92.5H13.9375ZM23.9375 48.5V60.5H46.9375V70.5H23.9375V82.5H47.9375C53.6042 82.3333 64.9375 78.7 64.9375 65.5C64.9375 52.3 52.9375 48.6667 46.9375 48.5H23.9375Z" />
                       </svg>
                     </span>
                   </td>
